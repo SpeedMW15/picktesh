@@ -41,7 +41,7 @@ export default function App() {
     setCart((prev) => prev.filter((_, index) => index !== indexToRemove))
   }
 
-  const handleCheckout = async (total, time) => {
+const handleCheckout = async (total, time) => {
     if (!walletConnected) {
       alert('Por favor conecta tu billetera primero para firmar la transacción.')
       setIsWalletModalOpen(true)
@@ -55,6 +55,7 @@ export default function App() {
 
     const randomCode = Math.floor(100000 + Math.random() * 900000).toString()
     const itemsDescription = cart.map(i => i.name).join(', ')
+    const studentName = user?.name || 'Alumno TESH'
 
     try {
       await fetch('http://localhost:3001/api/orders', {
@@ -62,7 +63,7 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           pickupCode: randomCode,
-          student: user?.name || 'Alumno TESH',
+          student: studentName,
           items: itemsDescription,
           total: total,
           pickupTime: time

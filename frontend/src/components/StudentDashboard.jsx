@@ -1,22 +1,32 @@
 import React, { useState, useEffect } from 'react'
-import { Utensils, ShoppingBag, Clock, CheckCircle2, AlertTriangle, ShieldCheck, QrCode } from 'lucide-react'
+import { Utensils, ShoppingBag, Clock, CheckCircle2, AlertTriangle, ShieldCheck, QrCode, RefreshCw } from 'lucide-react'
 
 export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
   const [myOrders, setMyOrders] = useState([])
+  const [loading, setLoading] = useState(false)
 
-  // Cargar pedidos reales del alumno desde Supabase
-  useEffect(() => {
+  const fetchMyOrders = async () => {
     if (!user) return
-    fetch('http://localhost:3001/api/orders')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          // Filtrar órdenes correspondientes a este alumno
-          const studentOrders = data.filter(o => o.student === user.name)
-          setMyOrders(studentOrders)
-        }
-      })
-      .catch(err => console.error('Error al cargar historial:', err))
+    setLoading(true)
+    try {
+      const res = await fetch('http://localhost:3001/api/orders')
+      const data = await res.json()
+      if (Array.isArray(data)) {
+        // Filtrar órdenes que correspondan al usuario actual
+        const filtered = data.filter(
+          o => o.student === user.name || o.student.includes(user.id)
+        )
+        setMyOrders(filtered)
+      }
+    } catch (err) {
+      console.error('Error al cargar historial:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchMyOrders()
   }, [user])
 
   return (
@@ -75,12 +85,23 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
         </div>
       </section>
 
-      {/* Historial de Pedidos del Alumno */}
-      {myOrders.length > 0 && (
-        <section className="space-y-4 pt-4 border-t border-slate-800">
+      {/* Historial de Pedidos */}
+      <section className="space-y-4 pt-4 border-t border-slate-800">
+        <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Clock className="w-5 h-5 text-indigo-400" /> Mis Pedidos Recientes
+            <Clock className="w-5 h-5 text-indigo-400" /> Mis Pedidos
           </h2>
+          <button 
+            onClick={fetchMyOrders}
+            className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition flex items-center gap-1 text-xs"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Actualizar Lista
+          </button>
+        </div>
+
+        {myOrders.length === 0 ? (
+          <p className="text-xs text-slate-500 py-4">No tienes pedidos activos registrados a tu nombre.</p>
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {myOrders.map((ord) => (
               <div key={ord.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
@@ -114,8 +135,8 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
               </div>
             ))}
           </div>
-        </section>
-      )}
+        )}
+      </section>
     </div>
   )
 }
