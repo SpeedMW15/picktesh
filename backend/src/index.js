@@ -15,7 +15,109 @@ const supabaseUrl = process.env.SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
 
-// 1. Obtener TODOS los pedidos
+// 1. Registro de Usuario en Supabase
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { name, email, password, enrollment } = req.body
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'Por favor completa todos los campos requeridos.' })
+    }
+
+    const cleanEmail = email.trim().toLowerCase()
+    const studentId = enrollment ? enrollment.trim() : cleanEmail.split('@')[0]
+    const stellarKey = `G${studentId.toUpperCase().replace(/[^A-Z0-9]/g, '')}STELLARSECUREKEY001`
+
+    // Verificar si el correo ya está registrado en Supabase
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', cleanEmail)
+      .single()
+
+    if (existingUser) {
+      return res.status(400).json({ error: 'Este correo electrónico ya está registrado.' })
+    }
+
+    // Insertar nuevo usuario en la base de datos
+    const newUser = {
+      student_id: studentId,
+      name: name,
+      email: cleanEmail,
+      password: password, // Para producción se recomienda encriptar con bcrypt
+      role: 'student',
+      stellar_public_key: stellarKey
+    }
+
+    const { data, error } = await supabase.from('users').insert([newUser]).select()
+
+    if (error) throw error
+
+    const registeredUser = data[0]
+
+    res.status(201).json({
+      success: true,
+      user: {
+        id: registeredUser.student_id,
+        name: registeredUser.name,
+        email: registeredUser.email,
+        role: registeredUser.role,
+        provider: 'Cuenta PickTESH (Supabase)',
+        stellarPublicKey: registeredUser.stellar_public_key
+      }
+    })
+  } catch (error) {
+    console.error('Error al registrar usuario:', error)
+    res.status(500).json({ error: 'No se pudo completar el registro en Supabase.' })
+  }
+})
+
+// 2. Inicio de Sesión y Validación contra Supabase
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { identifier, password } = req.body
+
+    if (!identifier || !password) {
+      return res.status(400).json({ error: 'Proporciona tu correo electrónico y contraseña.' })
+    }
+
+    const cleanInput = identifier.trim().toLowerCase()
+
+    // Buscar usuario en Supabase por email o por student_id (matrícula)
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('*')
+      .or(`email.eq.${cleanInput},student_id.eq.${cleanInput}`)
+
+    if (error || !users || users.length === 0) {
+      return res.status(401).json({ error: 'Usuario no encontrado. Registra una cuenta primero.' })
+    }
+
+    const user = users[0]
+
+    // Validar contraseña exacta
+    if (user.password !== password) {
+      return res.status(401).json({ error: 'Contraseña incorrecta. Inténtalo de nuevo.' })
+    }
+
+    res.json({
+      success: true,
+      user: {
+        id: user.student_id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        provider: 'Cuenta PickTESH (Supabase)',
+        stellarPublicKey: user.stellar_public_key
+      }
+    })
+  } catch (error) {
+    console.error('Error en login:', error)
+    res.status(500).json({ error: 'Error interno al validar las credenciales.' })
+  }
+})
+
+// 3. Obtener pedidos en Supabase
 app.get('/api/orders', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -30,7 +132,7 @@ app.get('/api/orders', async (req, res) => {
   }
 })
 
-// 2. Guardar orden enviada por el alumno
+// 4. Registrar pedido
 app.post('/api/orders', async (req, res) => {
   try {
     const { pickupCode, student, items, total, pickupTime } = req.body
@@ -54,7 +156,7 @@ app.post('/api/orders', async (req, res) => {
   }
 })
 
-// 3. Buscar orden por código exacto
+// 5. Verificación de ticket por código
 app.get('/api/orders/verify/:code', async (req, res) => {
   try {
     const { code } = req.params
@@ -82,7 +184,7 @@ app.get('/api/orders/verify/:code', async (req, res) => {
   }
 })
 
-// 4. Cambiar estado
+// 6. Actualizar estado de pedido
 app.patch('/api/orders/:code/status', async (req, res) => {
   try {
     const { code } = req.params
@@ -101,28 +203,26 @@ app.patch('/api/orders/:code/status', async (req, res) => {
   }
 })
 
-// 5. Integración de IA con Groq (Ajustada con Fallback)
+// 7. Recomendador IA Groq
 app.post('/api/ai/recommend', async (req, res) => {
   try {
     const { preference } = req.body
     const apiKey = process.env.GROQ_API_KEY
 
-    // Si la API Key no está configurada o es vacía
     if (!apiKey || apiKey.trim() === '' || apiKey.includes('tu_clave')) {
-      console.log('⚠️ GROQ_API_KEY no detectada. Usando respuesta por defecto.')
       return res.json({
-        recommendation: "¡ChefTESH sugiere: Una Torta de Chilaquiles acompañada de un Café Americano 12oz! La combinación perfecta para cargarte de energía entre clases."
+        recommendation: "¡MichiTESH sugiere: Una Torta de Chilaquiles con Café Americano para tener energía entre clases!"
       })
     }
 
-    const prompt = `Eres "ChefTESH", un asistente virtual entusiasta de la cafetería de la universidad TESH.
+    const prompt = `Eres "MichiTESH", la mascota gatito de la cafetería del TecNM Huixquilucan (TESH).
     Menú:
     - Torta de Chilaquiles (35 $TESH)
     - Molletes Sencillos (25 $TESH)
     - Café Americano 12oz (18 $TESH)
 
-    Preferencia del alumno: "${preference || 'algo para estudiar con energía'}".
-    Recomiéndale en máximo 2 oraciones cortas y amigables qué pedir.`
+    Preferencia: "${preference || 'algo rico'}".
+    Recomienda en máximo 2 oraciones de forma tierna.`
 
     const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -138,21 +238,12 @@ app.post('/api/ai/recommend', async (req, res) => {
     })
 
     const groqData = await groqResponse.json()
-
-    if (!groqResponse.ok) {
-      console.error('Error desde Groq API:', groqData)
-      return res.json({
-        recommendation: "¡ChefTESH sugiere: Unos deliciosos Molletes Sencillos con Café Americano para tu pausa universitaria!"
-      })
-    }
-
-    const text = groqData.choices?.[0]?.message?.content || "¡Te sugerimos probar nuestros Molletes Sencillos recién hechos!"
+    const text = groqData.choices?.[0]?.message?.content || "¡MichiTESH sugiere probar los Molletes Sencillos!"
     res.json({ recommendation: text })
 
   } catch (error) {
-    console.error('Error interno al procesar IA:', error)
     res.json({
-      recommendation: "¡ChefTESH sugiere: Prueba la Torta de Chilaquiles con tu bebida favorita!"
+      recommendation: "¡MichiTESH sugiere: Torta de Chilaquiles con tu bebida favorita!"
     })
   }
 })
