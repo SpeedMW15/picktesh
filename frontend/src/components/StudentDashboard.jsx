@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Utensils, ShoppingBag, Clock, ShieldCheck, QrCode, RefreshCw, Sparkles } from 'lucide-react'
+import { Utensils, ShoppingBag, Clock, ShieldCheck, QrCode, RefreshCw, Sparkles, Wallet, ArrowDownCircle, Coins, Cpu, CheckCircle2 } from 'lucide-react'
 import MichiMascot from './MichiMascot'
 
 export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
@@ -7,6 +7,11 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
   const [loading, setLoading] = useState(false)
   const [aiRecommendation, setAiRecommendation] = useState('')
   const [loadingAi, setLoadingAi] = useState(false)
+  
+  // Estado de Recarga de Saldo $TESH
+  const [recharging, setRecharging] = useState(false)
+  const [walletBalance, setWalletBalance] = useState('100.00')
+  const [showRecargaMsg, setShowRecargaMsg] = useState(false)
 
   const fetchMyOrders = async () => {
     if (!user) return
@@ -54,6 +59,19 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
     }
   }
 
+  // Simulación de Recarga de Cripto con Friendbot Stellar Testnet
+  const handleRechargeWallet = () => {
+    setRecharging(true)
+    setShowRecargaMsg(false)
+    setTimeout(() => {
+      const current = parseFloat(walletBalance)
+      setWalletBalance((current + 50.00).toFixed(2))
+      setRecharging(false)
+      setShowRecargaMsg(true)
+      setTimeout(() => setShowRecargaMsg(false), 4000)
+    }, 1500)
+  }
+
   return (
     <div className="space-y-10 text-left">
       
@@ -72,7 +90,7 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
           </h1>
 
           <p className="text-slate-400 text-sm md:text-base leading-relaxed">
-            Programa tu hora de recolección, paga con $TESH y recoge en barra mostrando tu código QR.
+            Programa tu hora de recolección, paga con $TESH en custodia y recoge en barra presentando tu código QR.
           </p>
         </div>
 
@@ -82,7 +100,80 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
         </div>
       </section>
 
-      {/* Seccion IA con MichiTESH Asistente */}
+      {/* MÓDULO DE BILLETERA, SMART CONTRACTS Y RECARGAS $TESH */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        {/* Tarjeta 1: Saldo y Recarga Cripto */}
+        <div className="bg-slate-900/80 border border-indigo-500/30 rounded-3xl p-6 shadow-xl backdrop-blur-md flex flex-col justify-between space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Coins className="w-4 h-4 text-indigo-400" /> Mi Billetera $TESH
+              </span>
+              <span className="text-[10px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-md">
+                Testnet
+              </span>
+            </div>
+
+            <div className="pt-2">
+              <span className="text-3xl font-black text-white">{walletBalance}</span>
+              <span className="text-sm font-extrabold text-indigo-400 ml-2">$TESH</span>
+            </div>
+            <p className="text-[11px] text-slate-400 truncate font-mono">
+              {user?.stellarPublicKey || 'G...TESHSTELLARKEY'}
+            </p>
+          </div>
+
+          <div>
+            <button
+              onClick={handleRechargeWallet}
+              disabled={recharging}
+              className="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white font-bold text-xs rounded-2xl transition shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2"
+            >
+              {recharging ? <RefreshCw className="w-4 h-4 animate-spin" /> : <ArrowDownCircle className="w-4 h-4" />}
+              <span>{recharging ? 'Solicitando a Stellar...' : 'Recargar +50 $TESH (Faucet)'}</span>
+            </button>
+
+            {showRecargaMsg && (
+              <div className="mt-2.5 p-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[11px] rounded-xl font-semibold flex items-center gap-1.5 animate-fadeIn">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>¡Recarga exitosa desde Stellar Friendbot!</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Tarjeta 2: Funcionamiento de Smart Contract Escrow */}
+        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl backdrop-blur-md space-y-3 md:col-span-2 flex flex-col justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Cpu className="w-5 h-5 text-purple-400" />
+              <h3 className="font-bold text-white text-sm">Estado de Pagos & Smart Contract Soroban</h3>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Tus compras quedan protegidas en un contrato de **Escrow (Custodia temporal)**. Los tokens $TESH se bloquean en la red al ordenar y solo se transfieren a la cafetería cuando el personal escanea tu ticket QR en barra.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800/80 text-[11px]">
+            <div className="p-2 bg-slate-950/80 rounded-xl border border-slate-800">
+              <span className="block font-bold text-amber-400">1. Pendiente</span>
+              <span className="text-slate-500 text-[10px]">Fondos retenidos</span>
+            </div>
+            <div className="p-2 bg-slate-950/80 rounded-xl border border-slate-800">
+              <span className="block font-bold text-emerald-400">2. Entrega QR</span>
+              <span className="text-slate-500 text-[10px]">Validación en barra</span>
+            </div>
+            <div className="p-2 bg-slate-950/80 rounded-xl border border-slate-800">
+              <span className="block font-bold text-indigo-400">3. Liberación</span>
+              <span className="text-slate-500 text-[10px]">Pago completado</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      {/* Asistente Recomendador de IA */}
       <section className="bg-slate-900/80 border border-indigo-500/30 rounded-3xl p-6 shadow-xl relative overflow-hidden backdrop-blur-md space-y-4">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
