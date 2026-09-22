@@ -10,79 +10,112 @@ export default function MichiMascot({ state = 'idle', speechBubble = null }) {
   }
 
   return (
-    <div className="relative inline-flex flex-col items-center select-none group cursor-pointer" onClick={handleMichiClick}>
-      
-      {/* Nube de Diálogo / Globitot de Texto */}
+    <div 
+      className="relative inline-flex flex-col items-center select-none group cursor-pointer" 
+      onClick={handleMichiClick}
+    >
+      {/* Nube de Diálogo / Globito de Texto */}
       {speechBubble && (
-        <div className="absolute -top-12 bg-slate-900 border border-indigo-500/40 text-indigo-200 text-[11px] font-bold px-3 py-1.5 rounded-2xl shadow-xl whitespace-nowrap animate-bounce z-20 flex items-center gap-1">
-          <Sparkles className="w-3 h-3 text-amber-400" />
+        <div className="absolute -top-12 bg-slate-900/95 border border-amber-500/50 text-amber-200 text-[11px] font-bold px-3 py-1.5 rounded-2xl shadow-xl whitespace-nowrap animate-bounce z-30 flex items-center gap-1.5 backdrop-blur-md">
+          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
           <span>{speechBubble}</span>
         </div>
       )}
 
-      {/* SVG Gatito Redondito ("MichiTESH") */}
-      <div className={`relative transition-transform duration-300 ${state === 'thinking' ? 'animate-michi-purr' : 'animate-michi-float'}`}>
+      {/* SVG del Gatito Naranja Pachoncito */}
+      <div className={`relative transition-all duration-300 ${state === 'thinking' ? 'animate-michi-purr' : 'animate-michi-float'}`}>
         
         {/* Corazoncito cuando le das clic */}
         {isHappy && (
-          <div className="absolute -top-4 right-0 text-rose-400 animate-ping">
-            <Heart className="w-4 h-4 fill-current" />
+          <div className="absolute -top-2 right-2 text-rose-400 animate-ping z-30">
+            <Heart className="w-5 h-5 fill-current" />
           </div>
         )}
 
-        <svg width="90" height="90" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg">
-          {/* Orejitas */}
-          <polygon points="22,38 12,18 36,28" fill="#6366f1" />
-          <polygon points="24,36 17,22 34,29" fill="#f43f5e" />
-          <polygon points="78,38 88,18 64,28" fill="#6366f1" />
-          <polygon points="76,36 83,22 66,29" fill="#f43f5e" />
+        {/* Resplandor cálido de fondo */}
+        <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-xl pointer-events-none group-hover:bg-amber-500/30 transition duration-300" />
 
-          {/* Cuerpo Redondito */}
-          <circle cx="50" cy="56" r="36" fill="#4f46e5" />
+        <svg 
+          width="120" 
+          height="120" 
+          viewBox="0 0 120 120" 
+          fill="none" 
+          xmlns="http://www.w3.org/2000/svg" 
+          className="relative z-10 drop-shadow-2xl group-hover:scale-105 transition duration-300"
+        >
+          {/* Cola pachoncita atigrada */}
+          <path d="M 82 82 Q 108 85 104 68 Q 100 55 90 64" stroke="#f97316" strokeWidth="18" strokeLinecap="round" fill="none" />
+          <path d="M 82 82 Q 108 85 104 68 Q 100 55 90 64" stroke="#ea580c" strokeWidth="6" strokeLinecap="round" fill="none" strokeDasharray="6 8" />
+
+          {/* Cuerpo Redondito (Base Naranja) */}
+          <ellipse cx="60" cy="68" rx="42" ry="36" fill="#f97316" />
           
-          {/* Pancita tierna */}
-          <ellipse cx="50" cy="64" rx="22" ry="18" fill="#818cf8" opacity="0.4" />
+          {/* Pecho de peluche blanco/crema */}
+          <ellipse cx="60" cy="74" rx="26" ry="22" fill="#fff7ed" />
 
-          {/* Ojos */}
+          {/* Franjas atigradas del cuerpo */}
+          <path d="M 22 62 Q 32 64 26 72" stroke="#ea580c" strokeWidth="4" strokeLinecap="round" fill="none" />
+          <path d="M 98 62 Q 88 64 94 72" stroke="#ea580c" strokeWidth="4" strokeLinecap="round" fill="none" />
+
+          {/* Orejitas */}
+          <path d="M 28 36 L 20 12 L 44 24 Z" fill="#f97316" />
+          <path d="M 30 34 L 23 16 L 41 25 Z" fill="#fb7185" opacity="0.7" />
+          <path d="M 92 36 L 100 12 L 76 24 Z" fill="#f97316" />
+          <path d="M 90 34 L 97 16 L 79 25 Z" fill="#fb7185" opacity="0.7" />
+
+          {/* Cabeza Peludita */}
+          <ellipse cx="60" cy="46" rx="36" ry="28" fill="#f97316" />
+
+          {/* Franjas atigradas de la frente */}
+          <path d="M 60 22 L 60 30" stroke="#ea580c" strokeWidth="3" strokeLinecap="round" />
+          <path d="M 52 24 L 54 31" stroke="#ea580c" strokeWidth="3" strokeLinecap="round" />
+          <path d="M 68 24 L 66 31" stroke="#ea580c" strokeWidth="3" strokeLinecap="round" />
+
+          {/* Mejillas claritas */}
+          <ellipse cx="60" cy="52" rx="20" ry="12" fill="#fff7ed" />
+
+          {/* Ojos Gigantes y Brillantitos */}
           {state === 'thinking' ? (
             <>
-              {/* Ojos cerrados pensando ^_^ */}
-              <path d="M 32 48 Q 40 40 44 48" stroke="#ffffff" strokeWidth="3.5" strokeLinecap="round" fill="none" />
-              <path d="M 56 48 Q 60 40 68 48" stroke="#ffffff" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+              <path d="M 40 44 Q 48 36 52 44" stroke="#451a03" strokeWidth="4" strokeLinecap="round" fill="none" />
+              <path d="M 68 44 Q 72 36 80 44" stroke="#451a03" strokeWidth="4" strokeLinecap="round" fill="none" />
             </>
           ) : isHappy ? (
             <>
-              {/* Ojos feliz en forma de U */}
-              <path d="M 32 44 Q 38 52 44 44" stroke="#ffffff" strokeWidth="3.5" strokeLinecap="round" fill="none" />
-              <path d="M 56 44 Q 62 52 68 44" stroke="#ffffff" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+              <path d="M 40 42 Q 46 50 52 42" stroke="#451a03" strokeWidth="4" strokeLinecap="round" fill="none" />
+              <path d="M 68 42 Q 74 50 80 42" stroke="#451a03" strokeWidth="4" strokeLinecap="round" fill="none" />
             </>
           ) : (
             <>
-              {/* Ojos normales grandes y brillantes */}
-              <circle cx="38" cy="46" r="5" fill="#ffffff" />
-              <circle cx="62" cy="46" r="5" fill="#ffffff" />
-              <circle cx="39.5" cy="44.5" r="2" fill="#0f172a" />
-              <circle cx="63.5" cy="44.5" r="2" fill="#0f172a" />
+              {/* Ojo Izquierdo */}
+              <circle cx="46" cy="43" r="7" fill="#451a03" />
+              <circle cx="44" cy="41" r="2.5" fill="#ffffff" />
+              <circle cx="48" cy="44.5" r="1" fill="#ffffff" />
+
+              {/* Ojo Derecho */}
+              <circle cx="74" cy="43" r="7" fill="#451a03" />
+              <circle cx="72" cy="41" r="2.5" fill="#ffffff" />
+              <circle cx="76" cy="44.5" r="1" fill="#ffffff" />
             </>
           )}
 
+          {/* Rubor Rosado */}
+          <ellipse cx="36" cy="49" rx="5" ry="3" fill="#fb7185" opacity="0.6" />
+          <ellipse cx="84" cy="49" rx="5" ry="3" fill="#fb7185" opacity="0.6" />
+
           {/* Naricita y Boquita */}
-          <polygon points="48,53 52,53 50,56" fill="#f43f5e" />
-          <path d="M 45 57 Q 50 62 50 57 Q 50 62 55 57" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" fill="none" />
+          <polygon points="58,49 62,49 60,52" fill="#fb7185" />
+          <path d="M 54 53 Q 60 58 60 53 Q 60 58 66 53" stroke="#451a03" strokeWidth="2.5" strokeLinecap="round" fill="none" />
 
-          {/* Rubor en las mejillas */}
-          <ellipse cx="28" cy="52" rx="4" ry="2.5" fill="#f43f5e" opacity="0.6" />
-          <ellipse cx="72" cy="52" rx="4" ry="2.5" fill="#f43f5e" opacity="0.6" />
+          {/* Bigotes tiernos */}
+          <line x1="20" y1="46" x2="34" y2="48" stroke="#ea580c" strokeWidth="2" strokeLinecap="round" />
+          <line x1="18" y1="53" x2="34" y2="52" stroke="#ea580c" strokeWidth="2" strokeLinecap="round" />
+          <line x1="100" y1="46" x2="86" y2="48" stroke="#ea580c" strokeWidth="2" strokeLinecap="round" />
+          <line x1="102" y1="53" x2="86" y2="52" stroke="#ea580c" strokeWidth="2" strokeLinecap="round" />
 
-          {/* Bigotitos */}
-          <line x1="12" y1="48" x2="26" y2="50" stroke="#818cf8" strokeWidth="2" strokeLinecap="round" />
-          <line x1="10" y1="56" x2="26" y2="55" stroke="#818cf8" strokeWidth="2" strokeLinecap="round" />
-          <line x1="88" y1="48" x2="74" y2="50" stroke="#818cf8" strokeWidth="2" strokeLinecap="round" />
-          <line x1="90" y1="56" x2="74" y2="55" stroke="#818cf8" strokeWidth="2" strokeLinecap="round" />
-
-          {/* Patitas delanteras redonditas */}
-          <ellipse cx="38" cy="84" rx="7" ry="5" fill="#3730a3" />
-          <ellipse cx="62" cy="84" rx="7" ry="5" fill="#3730a3" />
+          {/* Patitas delanteras pachoncitas */}
+          <ellipse cx="48" cy="98" rx="8" ry="6" fill="#fff7ed" stroke="#f97316" strokeWidth="2" />
+          <ellipse cx="72" cy="98" rx="8" ry="6" fill="#fff7ed" stroke="#f97316" strokeWidth="2" />
         </svg>
       </div>
     </div>
