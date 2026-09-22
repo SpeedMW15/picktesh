@@ -2,70 +2,123 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Scrollbar personalizado */
+/* Scrollbar fluido */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #020617;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background-color: rgba(148, 163, 184, 0.4);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #4f46e5;
+  background-color: #6366f1;
 }
 
 body {
   margin: 0;
-  background-color: #020617;
-  color: #f8fafc;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Efectos de resplandor Neón */
-.glow-indigo {
-  box-shadow: 0 0 25px -5px rgba(79, 70, 229, 0.3);
+/* --- CORRECCIONES PARA TEMA CLARO (LIGHT MODE) --- */
+html:not(.dark) {
+  color-scheme: light;
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
 }
 
-.glow-emerald {
-  box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.3);
+html:not(.dark) body,
+html:not(.dark) main {
+  background-color: #f1f5f9 !important;
 }
 
-/* Panel estilo Glassmorphism */
-.glass-panel {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* 1. Header en Modo Claro */
+html:not(.dark) header,
+html:not(.dark) .glass-panel {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
 }
 
-/* Animaciones para la Mascota MichiTESH */
+/* 2. Banner Principal en Modo Claro */
+html:not(.dark) section[class*="from-indigo-100"],
+html:not(.dark) section[class*="from-slate-900"] {
+  background: linear-gradient(135deg, #e0e7ff 0%, #ffffff 50%, #f1f5f9 100%) !important;
+  border: 1px solid #c7d2fe !important;
+  box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.15) !important;
+}
+
+/* Texto del Banner Visible en Modo Claro */
+html:not(.dark) section h1 {
+  color: #0f172a !important;
+}
+
+html:not(.dark) section p {
+  color: #475569 !important;
+}
+
+/* 3. Tarjetas, Billeteras y Contenedores */
+html:not(.dark) div[class*="bg-white"],
+html:not(.dark) div[class*="bg-slate-900"],
+html:not(.dark) div[class*="bg-slate-950"],
+html:not(.dark) section[class*="bg-slate-900"] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: 0 10px 25px -5px rgba(148, 163, 184, 0.15) !important;
+}
+
+/* Forzar números y saldo en negro para legibilidad */
+html:not(.dark) span[class*="text-3xl"],
+html:not(.dark) span[class*="text-xl"],
+html:not(.dark) h2,
+html:not(.dark) h3,
+html:not(.dark) h4,
+html:not(.dark) label {
+  color: #0f172a !important;
+}
+
+html:not(.dark) input {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+/* Cajas secundarias dentro de tarjetas */
+html:not(.dark) div[class*="bg-slate-50"],
+html:not(.dark) div[class*="bg-slate-950/80"],
+html:not(.dark) div[class*="glass-inner"] {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* --- MODO OSCURO (DARK MODE) --- */
+html.dark {
+  color-scheme: dark;
+  background-color: #020617 !important;
+  color: #f8fafc !important;
+}
+
+html.dark body,
+html.dark main {
+  background-color: #020617 !important;
+}
+
+/* Animaciones MichiTESH */
 @keyframes float {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-8px) rotate(2deg);
-  }
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(1.5deg); }
 }
 
 @keyframes purr {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
 }
 
-.animate-michi-float {
-  animation: float 3.5s ease-in-out infinite;
-}
-
-.animate-michi-purr {
-  animation: purr 1.2s ease-in-out infinite;
-}
+.animate-michi-float { animation: float 4s ease-in-out infinite; }
+.animate-michi-purr { animation: purr 1.2s ease-in-out infinite; }

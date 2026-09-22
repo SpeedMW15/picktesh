@@ -52,7 +52,6 @@ export default function WelcomePage() {
             alert(res.message || 'Error en la autenticación institucional.')
           }
         } else {
-          // LLAMADA ASÍNCRONA CON AWAIT AL BACKEND/SUPABASE
           const res = await loginWithLocalAccount(localEmail, localPassword)
           if (!res.success) {
             alert(res.message || 'Credenciales inválidas.')
@@ -81,43 +80,43 @@ export default function WelcomePage() {
         
         {/* Columna Izquierda: Presentación y Mascota */}
         <div className="text-left space-y-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 backdrop-blur-md">
-            <Zap className="w-4 h-4 text-indigo-400 fill-current" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30 backdrop-blur-md">
+            <Zap className="w-4 h-4 text-indigo-500 fill-current" />
             <span>PWA Cafetería TESH • Stellar Escrow</span>
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-black text-white leading-tight tracking-tight">
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white leading-tight tracking-tight">
             Pide tu comida <br />
-            <span className="bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 dark:from-indigo-400 dark:via-purple-300 dark:to-pink-400 bg-clip-text text-transparent">
               sin hacer filas
             </span>
           </h1>
 
-          <p className="text-slate-400 text-sm md:text-base leading-relaxed">
+          <p className="text-slate-600 dark:text-slate-400 text-sm md:text-base leading-relaxed">
             PickTESH conecta a los estudiantes del Tecnológico de Estudios Superiores de Huixquilucan con la barra mediante pagos seguros en Smart Contracts.
           </p>
 
           <div className="pt-2 flex items-center gap-4">
             <MichiMascot speechBubble="¡Bienvenido al TESH!" />
-            <div className="text-xs text-slate-400 space-y-1">
-              <p className="font-bold text-white flex items-center gap-1">
-                MichiTESH Anfitrión <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
+              <p className="font-bold text-slate-900 dark:text-white flex items-center gap-1">
+                MichiTESH Anfitrión <Sparkles className="w-3.5 h-3.5 text-amber-500" />
               </p>
               <p>Validación de cuentas en Supabase y billeteras de prueba Stellar.</p>
             </div>
           </div>
         </div>
 
-        {/* Columna Derecha: Tarjeta de Acceso y Registro */}
-        <div className="bg-slate-900/90 border border-slate-800 hover:border-indigo-500/30 rounded-3xl p-6 md:p-8 shadow-2xl backdrop-blur-xl space-y-6 text-left transition duration-300">
+        {/* Columna Derecha: Tarjeta de Acceso y Registro Adaptable al Tema */}
+        <div className="bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 hover:border-indigo-500/30 rounded-3xl p-6 md:p-8 shadow-xl dark:shadow-2xl backdrop-blur-xl space-y-6 text-left transition-colors duration-300">
           
           {/* Selector Login / Registro */}
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
             <div>
-              <h2 className="text-xl font-black text-white">
+              <h2 className="text-xl font-black text-slate-900 dark:text-white">
                 {isRegistering ? 'Crear Cuenta PickTESH' : 'Iniciar Sesión'}
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 {isRegistering ? 'Registra tu perfil y vincula tu billetera' : 'Elige tu método de acceso preferido'}
               </p>
             </div>
@@ -125,7 +124,7 @@ export default function WelcomePage() {
             <button
               type="button"
               onClick={() => setIsRegistering(!isRegistering)}
-              className="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition underline underline-offset-4"
+              className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition underline underline-offset-4 cursor-pointer"
             >
               {isRegistering ? '¿Ya tienes cuenta?' : '¿Nuevo usuario?'}
             </button>
@@ -135,14 +134,14 @@ export default function WelcomePage() {
             /* MODO INICIO DE SESIÓN */
             <div className="space-y-6">
               {/* Selector de Rol Principal */}
-              <div className="grid grid-cols-2 gap-2 bg-slate-950/80 p-1.5 rounded-2xl border border-slate-800">
+              <div className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-950/80 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setSelectedRole('student')}
-                  className={`py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${
+                  className={`py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
                     selectedRole === 'student'
                       ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-600/25'
-                      : 'text-slate-400 hover:text-white'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <GraduationCap className="w-4 h-4" /> Alumno / Usuario
@@ -150,10 +149,10 @@ export default function WelcomePage() {
                 <button
                   type="button"
                   onClick={() => setSelectedRole('cafeteria')}
-                  className={`py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${
+                  className={`py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
                     selectedRole === 'cafeteria'
                       ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-600/25'
-                      : 'text-slate-400 hover:text-white'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <Store className="w-4 h-4" /> Cafetería
@@ -163,14 +162,14 @@ export default function WelcomePage() {
               {selectedRole === 'student' ? (
                 <div className="space-y-4">
                   {/* Pestañas Sub-método */}
-                  <div className="flex border-b border-slate-800 gap-4 pb-2 text-xs font-bold">
+                  <div className="flex border-b border-slate-200 dark:border-slate-800 gap-4 pb-2 text-xs font-bold">
                     <button
                       type="button"
                       onClick={() => setAuthMethod('microsoft')}
-                      className={`pb-1 transition flex items-center gap-1.5 ${
+                      className={`pb-1 transition flex items-center gap-1.5 cursor-pointer ${
                         authMethod === 'microsoft'
-                          ? 'text-indigo-400 border-b-2 border-indigo-500'
-                          : 'text-slate-500 hover:text-slate-300'
+                          ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-500'
+                          : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
                       }`}
                     >
                       <Mail className="w-3.5 h-3.5" /> Correo Institucional
@@ -178,10 +177,10 @@ export default function WelcomePage() {
                     <button
                       type="button"
                       onClick={() => setAuthMethod('local')}
-                      className={`pb-1 transition flex items-center gap-1.5 ${
+                      className={`pb-1 transition flex items-center gap-1.5 cursor-pointer ${
                         authMethod === 'local'
-                          ? 'text-indigo-400 border-b-2 border-indigo-500'
-                          : 'text-slate-500 hover:text-slate-300'
+                          ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-500'
+                          : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
                       }`}
                     >
                       <UserCheck className="w-3.5 h-3.5" /> Cuenta PickTESH
@@ -190,7 +189,7 @@ export default function WelcomePage() {
 
                   {authMethod === 'microsoft' ? (
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-300 block">
+                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                         Correo Microsoft (@huixquilucan.tecnm.mx):
                       </label>
                       <div className="relative">
@@ -199,29 +198,29 @@ export default function WelcomePage() {
                           placeholder="l2026109482@huixquilucan.tecnm.mx"
                           value={msEmail}
                           onChange={(e) => setMsEmail(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-2xl pl-10 pr-4 py-3 text-white text-xs focus:outline-none transition font-mono"
+                          className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-2xl pl-10 pr-4 py-3 text-slate-900 dark:text-white text-xs focus:outline-none transition font-mono"
                         />
-                        <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                        <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                       </div>
                     </div>
                   ) : (
                     <div className="space-y-3">
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-300 block">Correo Electrónico:</label>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Correo Electrónico:</label>
                         <div className="relative">
                           <input
                             type="email"
                             placeholder="usuario@ejemplo.com"
                             value={localEmail}
                             onChange={(e) => setLocalEmail(e.target.value)}
-                            className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-2xl pl-10 pr-4 py-3 text-white text-xs focus:outline-none transition font-mono"
+                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-2xl pl-10 pr-4 py-3 text-slate-900 dark:text-white text-xs focus:outline-none transition font-mono"
                           />
-                          <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                          <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                         </div>
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-300 block">Contraseña:</label>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Contraseña:</label>
                         <div className="relative">
                           <input
                             type="password"
@@ -229,9 +228,9 @@ export default function WelcomePage() {
                             value={localPassword}
                             onChange={(e) => setLocalPassword(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleStartSession()}
-                            className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-2xl pl-10 pr-4 py-3 text-white text-xs focus:outline-none transition font-mono"
+                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-2xl pl-10 pr-4 py-3 text-slate-900 dark:text-white text-xs focus:outline-none transition font-mono"
                           />
-                          <KeyRound className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                          <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                         </div>
                       </div>
                     </div>
@@ -239,7 +238,7 @@ export default function WelcomePage() {
                 </div>
               ) : (
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-300 block">PIN de Seguridad de Barra:</label>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">PIN de Seguridad de Barra:</label>
                   <div className="relative">
                     <input
                       type="password"
@@ -247,9 +246,9 @@ export default function WelcomePage() {
                       value={pin}
                       onChange={(e) => setPin(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleStartSession()}
-                      className="w-full bg-slate-950 border border-slate-800 focus:border-purple-500 rounded-2xl pl-10 pr-4 py-3 text-white text-xs focus:outline-none transition font-mono tracking-widest"
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-purple-500 rounded-2xl pl-10 pr-4 py-3 text-slate-900 dark:text-white text-xs focus:outline-none transition font-mono tracking-widest"
                     />
-                    <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                   </div>
                 </div>
               )}
@@ -258,49 +257,49 @@ export default function WelcomePage() {
             /* MODO REGISTRO DE NUEVA CUENTA */
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300 block">Nombre Completo:</label>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Nombre Completo:</label>
                 <div className="relative">
                   <input
                     type="text"
                     placeholder="Ej: Juan Pérez"
                     value={regName}
                     onChange={(e) => setRegName(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-2xl pl-10 pr-4 py-3 text-white text-xs focus:outline-none transition"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-2xl pl-10 pr-4 py-3 text-slate-900 dark:text-white text-xs focus:outline-none transition"
                   />
-                  <UserPlus className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                  <UserPlus className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300 block">Correo Electrónico:</label>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Correo Electrónico:</label>
                 <div className="relative">
                   <input
                     type="email"
                     placeholder="l2026109482@huixquilucan.tecnm.mx"
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-2xl pl-10 pr-4 py-3 text-white text-xs focus:outline-none transition font-mono"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-2xl pl-10 pr-4 py-3 text-slate-900 dark:text-white text-xs focus:outline-none transition font-mono"
                   />
-                  <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300 block">Matrícula (Opcional):</label>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Matrícula (Opcional):</label>
                 <div className="relative">
                   <input
                     type="text"
                     placeholder="Ej: 2026109482"
                     value={regEnrollment}
                     onChange={(e) => setRegEnrollment(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-2xl pl-10 pr-4 py-3 text-white text-xs focus:outline-none transition font-mono"
+                    className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-2xl pl-10 pr-4 py-3 text-slate-900 dark:text-white text-xs focus:outline-none transition font-mono"
                   />
-                  <IdCard className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                  <IdCard className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300 block">Contraseña de Seguridad:</label>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Contraseña de Seguridad:</label>
                 <div className="relative">
                   <input
                     type="password"
@@ -308,9 +307,9 @@ export default function WelcomePage() {
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleStartSession()}
-                    className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-2xl pl-10 pr-4 py-3 text-white text-xs focus:outline-none transition font-mono"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 rounded-2xl pl-10 pr-4 py-3 text-slate-900 dark:text-white text-xs focus:outline-none transition font-mono"
                   />
-                  <KeyRound className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                  <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                 </div>
               </div>
             </div>
@@ -333,9 +332,9 @@ export default function WelcomePage() {
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
           </button>
 
-          <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
+          <div className="pt-2 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
             <span className="flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Billetera Cifrada Supabase
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Billetera Cifrada Supabase
             </span>
             <span>v1.0.0 Production</span>
           </div>
