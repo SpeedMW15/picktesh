@@ -15,7 +15,7 @@ const supabaseUrl = process.env.SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
 
-// 1. Obtener TODOS los pedidos para los Monitores y Dashboards
+// 1. Obtener TODOS los pedidos
 app.get('/api/orders', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -23,14 +23,9 @@ app.get('/api/orders', async (req, res) => {
       .select('*')
       .order('created_at', { ascending: false })
 
-    if (error) {
-      console.error('Error al listar ordenes de Supabase:', error)
-      return res.status(500).json({ error: error.message })
-    }
-
+    if (error) return res.status(500).json({ error: error.message })
     res.json(data || [])
   } catch (error) {
-    console.error('Error servidor:', error)
     res.status(500).json({ error: error.message })
   }
 })
@@ -55,7 +50,6 @@ app.post('/api/orders', async (req, res) => {
     if (error) throw error
     res.status(201).json({ message: 'Orden registrada', order: data[0] })
   } catch (error) {
-    console.error('Error al guardar:', error)
     res.status(500).json({ error: error.message })
   }
 })
@@ -104,6 +98,62 @@ app.patch('/api/orders/:code/status', async (req, res) => {
     res.json({ message: `Estado actualizado a ${status}`, order: data[0] })
   } catch (error) {
     res.status(500).json({ error: error.message })
+  }
+})
+
+// 5. Integración de IA con Groq (Ajustada con Fallback)
+app.post('/api/ai/recommend', async (req, res) => {
+  try {
+    const { preference } = req.body
+    const apiKey = process.env.GROQ_API_KEY
+
+    // Si la API Key no está configurada o es vacía
+    if (!apiKey || apiKey.trim() === '' || apiKey.includes('tu_clave')) {
+      console.log('⚠️ GROQ_API_KEY no detectada. Usando respuesta por defecto.')
+      return res.json({
+        recommendation: "¡ChefTESH sugiere: Una Torta de Chilaquiles acompañada de un Café Americano 12oz! La combinación perfecta para cargarte de energía entre clases."
+      })
+    }
+
+    const prompt = `Eres "ChefTESH", un asistente virtual entusiasta de la cafetería de la universidad TESH.
+    Menú:
+    - Torta de Chilaquiles (35 $TESH)
+    - Molletes Sencillos (25 $TESH)
+    - Café Americano 12oz (18 $TESH)
+
+    Preferencia del alumno: "${preference || 'algo para estudiar con energía'}".
+    Recomiéndale en máximo 2 oraciones cortas y amigables qué pedir.`
+
+    const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey.trim()}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 120
+      })
+    })
+
+    const groqData = await groqResponse.json()
+
+    if (!groqResponse.ok) {
+      console.error('Error desde Groq API:', groqData)
+      return res.json({
+        recommendation: "¡ChefTESH sugiere: Unos deliciosos Molletes Sencillos con Café Americano para tu pausa universitaria!"
+      })
+    }
+
+    const text = groqData.choices?.[0]?.message?.content || "¡Te sugerimos probar nuestros Molletes Sencillos recién hechos!"
+    res.json({ recommendation: text })
+
+  } catch (error) {
+    console.error('Error interno al procesar IA:', error)
+    res.json({
+      recommendation: "¡ChefTESH sugiere: Prueba la Torta de Chilaquiles con tu bebida favorita!"
+    })
   }
 })
 

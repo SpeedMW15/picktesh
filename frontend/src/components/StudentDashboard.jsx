@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { Utensils, ShoppingBag, Clock, ShieldCheck, QrCode, RefreshCw, Sparkles, ChevronRight } from 'lucide-react'
+import { Utensils, ShoppingBag, Clock, ShieldCheck, QrCode, RefreshCw, Sparkles } from 'lucide-react'
+import MichiMascot from './MichiMascot'
 
 export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
   const [myOrders, setMyOrders] = useState([])
   const [loading, setLoading] = useState(false)
+  const [aiRecommendation, setAiRecommendation] = useState('')
+  const [loadingAi, setLoadingAi] = useState(false)
 
   const fetchMyOrders = async () => {
     if (!user) return
@@ -28,27 +31,92 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
     fetchMyOrders()
   }, [user])
 
+  const handleAskAI = async () => {
+    setLoadingAi(true)
+    setAiRecommendation('')
+    try {
+      const res = await fetch('http://localhost:3001/api/ai/recommend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preference: 'Desayuno rico para estudiar' })
+      })
+      const data = await res.json()
+      if (data && data.recommendation) {
+        setAiRecommendation(data.recommendation)
+      } else {
+        setAiRecommendation('¡MichiTESH sugiere: Una Torta de Chilaquiles con Café Americano!')
+      }
+    } catch (err) {
+      console.error('Error al consultar IA:', err)
+      setAiRecommendation('¡MichiTESH sugiere: Molletes Sencillos calentitos!')
+    } finally {
+      setLoadingAi(false)
+    }
+  }
+
   return (
     <div className="space-y-10 text-left">
       
-      {/* Hero Banner Pro Alumno */}
-      <section className="relative overflow-hidden rounded-3xl border border-indigo-500/20 bg-gradient-to-br from-indigo-950/60 via-slate-900/90 to-slate-950 p-8 md:p-10 shadow-2xl backdrop-blur-xl">
+      {/* Hero Banner Pro Alumno con la Mascota MichiTESH */}
+      <section className="relative overflow-hidden rounded-3xl border border-indigo-500/20 bg-gradient-to-br from-indigo-950/60 via-slate-900/90 to-slate-950 p-8 md:p-10 shadow-2xl backdrop-blur-xl flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
         
-        <div className="max-w-2xl space-y-4 relative z-10">
+        <div className="max-w-xl space-y-4 relative z-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 backdrop-blur-md">
             <ShieldCheck className="w-4 h-4 text-indigo-400" />
             <span>Smart Contract Escrow • Soroban Testnet</span>
           </div>
 
           <h1 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight">
-            Pide tu comida en la <span className="bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">Cafetería TESH</span> sin filas
+            Pide en la <span className="bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">Cafetería TESH</span> sin hacer filas
           </h1>
 
           <p className="text-slate-400 text-sm md:text-base leading-relaxed">
-            Programa tu hora de recolección, paga con la cripto del TESH y recoge en barra presentando tu código QR o de rescate.
+            Programa tu hora de recolección, paga con $TESH y recoge en barra mostrando tu código QR.
           </p>
         </div>
+
+        {/* Mascota Saludando */}
+        <div className="relative z-10 shrink-0">
+          <MichiMascot speechBubble="¡Hola TESH!" />
+        </div>
+      </section>
+
+      {/* Seccion IA con MichiTESH Asistente */}
+      <section className="bg-slate-900/80 border border-indigo-500/30 rounded-3xl p-6 shadow-xl relative overflow-hidden backdrop-blur-md space-y-4">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <MichiMascot 
+              state={loadingAi ? 'thinking' : 'idle'} 
+              speechBubble={loadingAi ? 'Miau... pensando' : null} 
+            />
+            <div>
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                Asistente MichiTESH <Sparkles className="w-4 h-4 text-amber-400" />
+              </h3>
+              <p className="text-xs text-slate-400">¿No sabes qué pedir? Haz clic para pedirle una sugerencia</p>
+            </div>
+          </div>
+
+          <button
+            onClick={handleAskAI}
+            disabled={loadingAi}
+            className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 text-white font-bold text-xs rounded-2xl transition shadow-lg shadow-indigo-600/25 flex items-center gap-2 self-stretch md:self-auto justify-center"
+          >
+            {loadingAi ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4" />
+            )}
+            <span>{loadingAi ? 'Michi analizando...' : '¡Pedir sugerencia a Michi!'}</span>
+          </button>
+        </div>
+
+        {aiRecommendation && (
+          <div className="bg-slate-950/90 border border-indigo-500/30 rounded-2xl p-4 text-xs text-indigo-200 leading-relaxed font-medium animate-fadeIn">
+            🐾 <span className="font-bold text-white">MichiTESH dice:</span> {aiRecommendation}
+          </div>
+        )}
       </section>
 
       {/* Menú Interactivo */}
@@ -123,7 +191,6 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
 
         {myOrders.length === 0 ? (
           <div className="bg-slate-900/40 border border-slate-800/60 rounded-3xl p-8 text-center space-y-2">
-            <Sparkles className="w-8 h-8 text-slate-600 mx-auto" />
             <p className="text-sm font-semibold text-slate-400">No tienes pedidos registrados a tu nombre todavía.</p>
             <p className="text-xs text-slate-600">Selecciona algún platillo del menú para realizar tu primer compra en Escrow.</p>
           </div>

@@ -42,3 +42,30 @@ body {
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
+
+/* Animaciones para la Mascota MichiTESH */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+
+@keyframes purr {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-michi-float {
+  animation: float 3.5s ease-in-out infinite;
+}
+
+.animate-michi-purr {
+  animation: purr 1.2s ease-in-out infinite;
+}
