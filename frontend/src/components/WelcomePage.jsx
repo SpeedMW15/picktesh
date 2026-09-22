@@ -28,36 +28,46 @@ export default function WelcomePage() {
   const handleStartSession = async () => {
     setLoading(true)
 
-    // Flujo de Registro
-    if (isRegistering) {
-      const res = await registerUser({
-        name: regName,
-        email: regEmail,
-        enrollment: regEnrollment,
-        password: regPassword
-      })
-      setLoading(false)
-      if (!res.success) alert(res.message)
-      return
-    }
+    try {
+      // 1. Flujo de Registro en Supabase
+      if (isRegistering) {
+        const res = await registerUser({
+          name: regName,
+          email: regEmail,
+          enrollment: regEnrollment,
+          password: regPassword
+        })
+        if (!res.success) {
+          alert(res.message || 'Error al registrar la cuenta.')
+        }
+        setLoading(false)
+        return
+      }
 
-    // Flujo de Inicio de Sesión
-    if (selectedRole === 'student') {
-      if (authMethod === 'microsoft') {
-        const res = await loginWithMicrosoft(msEmail || 'l2026109482@huixquilucan.tecnm.mx')
-        setLoading(false)
-        if (!res.success) alert(res.message)
+      // 2. Flujo de Inicio de Sesión
+      if (selectedRole === 'student') {
+        if (authMethod === 'microsoft') {
+          const res = await loginWithMicrosoft(msEmail || 'l2026109482@huixquilucan.tecnm.mx')
+          if (!res.success) {
+            alert(res.message || 'Error en la autenticación institucional.')
+          }
+        } else {
+          // LLAMADA ASÍNCRONA CON AWAIT AL BACKEND/SUPABASE
+          const res = await loginWithLocalAccount(localEmail, localPassword)
+          if (!res.success) {
+            alert(res.message || 'Credenciales inválidas.')
+          }
+        }
       } else {
-        const res = loginWithLocalAccount(localEmail, localPassword)
-        setLoading(false)
-        if (!res.success) alert(res.message)
+        const success = loginAsCafeteria(pin.trim())
+        if (!success) {
+          alert('PIN de cafetería incorrecto. (PIN demo: 1234)')
+        }
       }
-    } else {
+    } catch (error) {
+      alert('Error al conectar con el servidor.')
+    } finally {
       setLoading(false)
-      const success = loginAsCafeteria(pin.trim())
-      if (!success) {
-        alert('PIN de cafetería incorrecto. (PIN demo: 1234)')
-      }
     }
   }
 
@@ -93,7 +103,7 @@ export default function WelcomePage() {
               <p className="font-bold text-white flex items-center gap-1">
                 MichiTESH Anfitrión <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               </p>
-              <p>Seguridad y generación automática de billeteras Stellar.</p>
+              <p>Validación de cuentas en Supabase y billeteras de prueba Stellar.</p>
             </div>
           </div>
         </div>
@@ -218,6 +228,7 @@ export default function WelcomePage() {
                             placeholder="••••••••"
                             value={localPassword}
                             onChange={(e) => setLocalPassword(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleStartSession()}
                             className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-2xl pl-10 pr-4 py-3 text-white text-xs focus:outline-none transition font-mono"
                           />
                           <KeyRound className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
@@ -235,6 +246,7 @@ export default function WelcomePage() {
                       placeholder="•••• (PIN Demo: 1234)"
                       value={pin}
                       onChange={(e) => setPin(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleStartSession()}
                       className="w-full bg-slate-950 border border-slate-800 focus:border-purple-500 rounded-2xl pl-10 pr-4 py-3 text-white text-xs focus:outline-none transition font-mono tracking-widest"
                     />
                     <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
@@ -274,7 +286,7 @@ export default function WelcomePage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300 block">Matrícula (Opcional para alumnos):</label>
+                <label className="text-xs font-bold text-slate-300 block">Matrícula (Opcional):</label>
                 <div className="relative">
                   <input
                     type="text"
@@ -295,6 +307,7 @@ export default function WelcomePage() {
                     placeholder="••••••••"
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleStartSession()}
                     className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-2xl pl-10 pr-4 py-3 text-white text-xs focus:outline-none transition font-mono"
                   />
                   <KeyRound className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
@@ -312,9 +325,9 @@ export default function WelcomePage() {
           >
             <span>
               {loading 
-                ? 'Procesando...' 
+                ? 'Validando...' 
                 : isRegistering 
-                ? 'Completar Registro y Crear Billetera' 
+                ? 'Completar Registro en Supabase' 
                 : 'Entrar al Dashboard'}
             </span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
@@ -322,7 +335,7 @@ export default function WelcomePage() {
 
           <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
             <span className="flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Billetera Cifrada Stellar
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Billetera Cifrada Supabase
             </span>
             <span>v1.0.0 Production</span>
           </div>
