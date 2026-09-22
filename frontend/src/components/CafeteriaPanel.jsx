@@ -3,50 +3,70 @@ import { X, QrCode, Hash, CheckCircle2, AlertTriangle, Search, ShieldCheck } fro
 
 export default function CafeteriaPanel({ isOpen, onClose }) {
   const [inputCode, setInputCode] = useState('')
-  const [activeTab, setActiveTab] = useState('code') // 'code' o 'qr'
+  const [activeTab, setActiveTab] = useState('code')
   const [scannedOrder, setScannedOrder] = useState(null)
   const [statusMessage, setStatusMessage] = useState(null)
 
   if (!isOpen) return null
 
-  // Simulación de búsqueda por código de 6 dígitos
-  const handleVerifyCode = (e) => {
-    e.preventDefault()
+  // Consultar directamente al servidor Backend (Supabase)
+  const handleVerifyCode = async (e) => {
+    if (e && e.preventDefault) e.preventDefault()
+    
     if (inputCode.length !== 6) {
       alert('Ingresa un código válido de 6 dígitos.')
       return
     }
 
-    // Datos simulados recuperados del backend/escrow
-    setScannedOrder({
-      orderId: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
-      student: 'Alumno TESH (G...4X9)',
-      items: 'Torta de Chilaquiles x1, Café Americano x1',
-      total: 53,
-      pickupTime: '12:30 hrs',
-      status: 'PENDIENTE_ENTREGA'
-    })
-    setStatusMessage(null)
+    try {
+      const res = await fetch(`http://localhost:3001/api/orders/verify/${inputCode}`)
+      if (!res.ok) {
+        alert('Código no encontrado en la base de datos.')
+        setScannedOrder(null)
+        return
+      }
+      const data = await res.json()
+      setScannedOrder(data)
+      setStatusMessage(null)
+    } catch (error) {
+      alert('Error de conexión con la base de datos Supabase.')
+    }
   }
 
-  // Confirmación de entrega (Libera fondos del Escrow a la Cafetería)
-  const handleDeliverOrder = () => {
-    setStatusMessage({
-      type: 'success',
-      text: '¡Entrega confirmada! Se han liberado 53 $TESH del Smart Contract a la cuenta de la Cafetería.'
-    })
-    setScannedOrder(null)
-    setInputCode('')
+  const handleDeliverOrder = async () => {
+    try {
+      await fetch(`http://localhost:3001/api/orders/${scannedOrder.pickup_code}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'COMPLETED' })
+      })
+      setStatusMessage({
+        type: 'success',
+        text: `¡Entrega confirmada! Se han liberado ${scannedOrder.total} $TESH a la cuenta de la Cafetería.`
+      })
+      setScannedOrder(null)
+      setInputCode('')
+    } catch (error) {
+      alert('No se pudo actualizar el estado.')
+    }
   }
 
-  // Reporte de penalización (Alumno no llegó en tiempo)
-  const handleApplyPenalty = () => {
-    setStatusMessage({
-      type: 'penalty',
-      text: 'Penalización ejecutada. Fondos transferidos a la cafetería por pedido no recolectado en tiempo.'
-    })
-    setScannedOrder(null)
-    setInputCode('')
+  const handleApplyPenalty = async () => {
+    try {
+      await fetch(`http://localhost:3001/api/orders/${scannedOrder.pickup_code}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'PENALIZED' })
+      })
+      setStatusMessage({
+        type: 'penalty',
+        text: 'Penalización ejecutada. Fondos transferidos a la cafetería por pedido no recolectado en tiempo.'
+      })
+      setScannedOrder(null)
+      setInputCode('')
+    } catch (error) {
+      alert('No se pudo aplicar la penalización.')
+    }
   }
 
   return (
@@ -61,34 +81,23 @@ export default function CafeteriaPanel({ isOpen, onClose }) {
             </div>
             <div>
               <h3 className="text-lg font-bold text-white">Panel Cafetería TESH</h3>
-              <p className="text-xs text-slate-400">Validación de entregas y Smart Contracts</p>
+              <p className="text-xs text-slate-400">Validación en tiempo real (Supabase)</p>
             </div>
           </div>
-          <button 
-            onClick={onClose}
-            className="text-slate-400 hover:text-white p-1 rounded-xl bg-slate-800"
-          >
+          <button onClick={onClose} className="text-slate-400 hover:text-white p-1 rounded-xl bg-slate-800">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Mensaje de Estado */}
         {statusMessage && (
           <div className={`p-4 rounded-2xl text-xs font-medium border flex items-start gap-2 ${
-            statusMessage.type === 'success' 
-              ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' 
-              : 'bg-rose-500/10 text-rose-300 border-rose-500/20'
+            statusMessage.type === 'success' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : 'bg-rose-500/10 text-rose-300 border-rose-500/20'
           }`}>
-            {statusMessage.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-            ) : (
-              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-            )}
+            {statusMessage.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" /> : <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />}
             <span>{statusMessage.text}</span>
           </div>
         )}
 
-        {/* Pestañas de método de validación */}
         <div className="flex bg-slate-800/60 p-1 rounded-2xl border border-slate-700/50">
           <button
             onClick={() => setActiveTab('code')}
@@ -108,7 +117,6 @@ export default function CafeteriaPanel({ isOpen, onClose }) {
           </button>
         </div>
 
-        {/* Vista Opción 1: Código Manual */}
         {activeTab === 'code' && (
           <form onSubmit={handleVerifyCode} className="space-y-3">
             <label className="text-xs font-semibold text-slate-300 block text-left">
@@ -123,35 +131,22 @@ export default function CafeteriaPanel({ isOpen, onClose }) {
                 onChange={(e) => setInputCode(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-center font-mono text-xl tracking-widest focus:outline-none focus:border-indigo-500"
               />
-              <button 
-                type="submit"
-                className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 rounded-xl transition flex items-center justify-center"
-              >
+              <button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 rounded-xl transition flex items-center justify-center">
                 <Search className="w-5 h-5" />
               </button>
             </div>
           </form>
         )}
 
-        {/* Vista Opción 2: Escáner QR */}
         {activeTab === 'qr' && (
           <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 text-center space-y-3">
             <div className="w-32 h-32 mx-auto border-2 border-dashed border-indigo-500/50 rounded-2xl flex items-center justify-center text-slate-500">
               <QrCode className="w-12 h-12 text-indigo-400 animate-pulse" />
             </div>
-            <p className="text-xs text-slate-400">
-              Apunta la cámara del dispositivo hacia el código QR presentado por el alumno.
-            </p>
-            <button 
-              onClick={() => handleVerifyCode({ preventDefault: () => {} })}
-              className="text-xs text-indigo-400 hover:underline font-semibold"
-            >
-              (Simular lectura de QR exitosa)
-            </button>
+            <p className="text-xs text-slate-400">Apunta la cámara al QR del alumno.</p>
           </div>
         )}
 
-        {/* Detalle del Pedido Encontrado */}
         {scannedOrder && (
           <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 text-left space-y-4">
             <div className="flex justify-between items-start border-b border-slate-700 pb-3">
@@ -165,8 +160,8 @@ export default function CafeteriaPanel({ isOpen, onClose }) {
             </div>
 
             <div className="text-xs space-y-1">
-              <span className="text-slate-400 block">Detalle de productos:</span>
-              <p className="text-slate-200 font-medium">{scannedOrder.items}</p>
+              <span className="text-slate-400 block">Detalle de productos comprados:</span>
+              <p className="text-slate-200 font-semibold text-sm">{scannedOrder.items}</p>
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-slate-700">
@@ -175,16 +170,10 @@ export default function CafeteriaPanel({ isOpen, onClose }) {
             </div>
 
             <div className="grid grid-cols-2 gap-2 pt-2">
-              <button
-                onClick={handleDeliverOrder}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1"
-              >
+              <button onClick={handleDeliverOrder} className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1">
                 <CheckCircle2 className="w-4 h-4" /> Entregar Comida
               </button>
-              <button
-                onClick={handleApplyPenalty}
-                className="bg-slate-700 hover:bg-rose-950 hover:text-rose-300 hover:border-rose-800 border border-slate-600 text-slate-300 font-semibold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1"
-              >
+              <button onClick={handleApplyPenalty} className="bg-slate-700 hover:bg-rose-950 hover:text-rose-300 hover:border-rose-800 border border-slate-600 text-slate-300 font-semibold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1">
                 <AlertTriangle className="w-4 h-4" /> Aplicar Penalización
               </button>
             </div>

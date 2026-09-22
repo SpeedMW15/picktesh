@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
-import { Wallet, Utensils, Zap, Clock, ShieldCheck, ShoppingBag, ShoppingCart, Store, User, LogOut } from 'lucide-react'
+import { Wallet, Zap, ShoppingCart, User, LogOut, Store, GraduationCap } from 'lucide-react'
 import { useAuth } from './context/AuthContext'
 import WalletModal from './components/WalletModal'
 import CartSidebar from './components/CartSidebar'
 import TicketModal from './components/TicketModal'
-import CafeteriaPanel from './components/CafeteriaPanel'
 import LoginModal from './components/LoginModal'
+import StudentDashboard from './components/StudentDashboard'
+import CafeteriaDashboard from './components/CafeteriaDashboard'
 
 export default function App() {
   const { user, logout } = useAuth()
@@ -14,7 +15,6 @@ export default function App() {
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isTicketOpen, setIsTicketOpen] = useState(false)
-  const [isCafeteriaPanelOpen, setIsCafeteriaPanelOpen] = useState(false)
   
   const [walletConnected, setWalletConnected] = useState(false)
   const [balance, setBalance] = useState('0.00')
@@ -41,7 +41,7 @@ export default function App() {
     setCart((prev) => prev.filter((_, index) => index !== indexToRemove))
   }
 
-  const handleCheckout = (total, time) => {
+  const handleCheckout = async (total, time) => {
     if (!walletConnected) {
       alert('Por favor conecta tu billetera primero para firmar la transacción.')
       setIsWalletModalOpen(true)
@@ -54,6 +54,23 @@ export default function App() {
     }
 
     const randomCode = Math.floor(100000 + Math.random() * 900000).toString()
+    const itemsDescription = cart.map(i => i.name).join(', ')
+
+    try {
+      await fetch('http://localhost:3001/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pickupCode: randomCode,
+          student: user?.name || 'Alumno TESH',
+          items: itemsDescription,
+          total: total,
+          pickupTime: time
+        })
+      })
+    } catch (err) {
+      console.error('Error al guardar en Supabase:', err)
+    }
 
     const qrPayloadData = JSON.stringify({
       orderId: `ORD-${Date.now().toString().slice(-6)}`,
@@ -78,7 +95,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans">
-      {/* Header / Navbar */}
+      {/* Navbar Superior */}
       <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -91,18 +108,6 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Si es Personal de Cafetería */}
-            {user?.role === 'cafeteria' && (
-              <button 
-                onClick={() => setIsCafeteriaPanelOpen(true)}
-                className="p-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition flex items-center gap-1.5 text-xs font-semibold shadow-lg shadow-indigo-600/20"
-              >
-                <Store className="w-4 h-4" />
-                <span>Panel Escáner</span>
-              </button>
-            )}
-
-            {/* Si es Alumno */}
             {user?.role === 'student' && (
               <button 
                 onClick={() => setIsCartOpen(true)}
@@ -117,7 +122,6 @@ export default function App() {
               </button>
             )}
 
-            {/* Billetera Stellar */}
             <button 
               onClick={() => setIsWalletModalOpen(true)}
               className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition font-medium text-xs text-slate-200"
@@ -126,24 +130,16 @@ export default function App() {
               {walletConnected ? `${balance} $TESH` : 'Billetera'}
             </button>
 
-            {/* Estado de Usuario / Login */}
             {user ? (
               <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-300">
-                <User className="w-3.5 h-3.5 text-indigo-400" />
-                <span className="max-w-[100px] truncate">{user.name}</span>
-                <button 
-                  onClick={logout}
-                  className="text-slate-500 hover:text-rose-400 ml-1"
-                  title="Cerrar Sesión"
-                >
+                {user.role === 'cafeteria' ? <Store className="w-3.5 h-3.5 text-indigo-400" /> : <GraduationCap className="w-3.5 h-3.5 text-indigo-400" />}
+                <span className="max-w-[120px] truncate">{user.name}</span>
+                <button onClick={logout} className="text-slate-500 hover:text-rose-400 ml-1" title="Cerrar Sesión">
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
               </div>
             ) : (
-              <button
-                onClick={() => setIsLoginModalOpen(true)}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition"
-              >
+              <button onClick={() => setIsLoginModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition">
                 Iniciar Sesión
               </button>
             )}
@@ -151,92 +147,27 @@ export default function App() {
         </div>
       </header>
 
-      {/* Contenido Principal */}
-      <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
-        <section className="bg-gradient-to-r from-indigo-900/40 via-purple-900/20 to-slate-900 border border-indigo-500/20 rounded-3xl p-6 md:p-8 relative overflow-hidden">
-          <div className="max-w-xl space-y-4">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-              <ShieldCheck className="w-3.5 h-3.5" /> Pagos seguros en Stellar Soroban
-            </span>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white leading-tight">
-              Pide tu comida en la Cafetería TESH sin filas
-            </h1>
-            <p className="text-slate-400 text-sm md:text-base">
-              Programa la hora de entrega, paga con la cripto del TESH y recoge directo en barra. Depósitos protegidos por Smart Contracts.
-            </p>
-          </div>
-        </section>
-
-        {/* Menú */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <Utensils className="w-5 h-5 text-indigo-400" /> Menú Disponible
-            </h2>
-            <span className="text-xs text-slate-400 flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" /> Tiempo estimado: 10-15 min
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              { id: 1, name: 'Torta de Chilaquiles', price: 35, category: 'Desayunos' },
-              { id: 2, name: 'Molletes Sencillos', price: 25, category: 'Snacks' },
-              { id: 3, name: 'Café Americano 12oz', price: 18, category: 'Bebidas' }
-            ].map(item => (
-              <div key={item.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 hover:border-slate-700 transition">
-                <div className="h-32 bg-slate-800/60 rounded-xl flex items-center justify-center text-slate-500">
-                  <Utensils className="w-8 h-8 opacity-40" />
-                </div>
-                <div>
-                  <span className="text-xs text-indigo-400 font-medium">{item.category}</span>
-                  <h3 className="font-semibold text-white">{item.name}</h3>
-                </div>
-                <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
-                  <span className="font-bold text-slate-100">{item.price} $TESH</span>
-                  <button 
-                    onClick={() => handleAddToCart(item)}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition"
-                  >
-                    <ShoppingBag className="w-3.5 h-3.5" /> Agregar
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+      {/* Contenido Principal Dinámico */}
+      <main className="max-w-5xl mx-auto px-4 py-8">
+        {user?.role === 'cafeteria' ? (
+          <CafeteriaDashboard user={user} />
+        ) : (
+          <StudentDashboard 
+            user={user} 
+            onAddToCart={handleAddToCart}
+            onOpenTicket={(ticket) => {
+              setTicketData(ticket)
+              setIsTicketOpen(true)
+            }}
+          />
+        )}
       </main>
 
       {/* Modales */}
-      <LoginModal 
-        isOpen={isLoginModalOpen} 
-        onClose={() => setIsLoginModalOpen(false)} 
-      />
-
-      <WalletModal 
-        isOpen={isWalletModalOpen} 
-        onClose={() => setIsWalletModalOpen(false)} 
-        onConnectDemo={handleConnectDemo}
-      />
-
-      <CartSidebar
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        cart={cart}
-        onRemoveItem={handleRemoveFromCart}
-        onCheckout={handleCheckout}
-      />
-
-      <TicketModal
-        isOpen={isTicketOpen}
-        onClose={() => setIsTicketOpen(false)}
-        ticketData={ticketData}
-      />
-
-      <CafeteriaPanel
-        isOpen={isCafeteriaPanelOpen}
-        onClose={() => setIsCafeteriaPanelOpen(false)}
-      />
+      <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
+      <WalletModal isOpen={isWalletModalOpen} onClose={() => setIsWalletModalOpen(false)} onConnectDemo={handleConnectDemo} />
+      <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} cart={cart} onRemoveItem={handleRemoveFromCart} onCheckout={handleCheckout} />
+      <TicketModal isOpen={isTicketOpen} onClose={() => setIsTicketOpen(false)} ticketData={ticketData} />
     </div>
   )
 }
