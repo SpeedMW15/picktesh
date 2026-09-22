@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Utensils, ShoppingBag, Clock, CheckCircle2, AlertTriangle, ShieldCheck, QrCode, RefreshCw } from 'lucide-react'
+import { Utensils, ShoppingBag, Clock, ShieldCheck, QrCode, RefreshCw, Sparkles, ChevronRight } from 'lucide-react'
 
 export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
   const [myOrders, setMyOrders] = useState([])
@@ -12,7 +12,6 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
       const res = await fetch('http://localhost:3001/api/orders')
       const data = await res.json()
       if (Array.isArray(data)) {
-        // Filtrar órdenes que correspondan al usuario actual
         const filtered = data.filter(
           o => o.student === user.name || o.student.includes(user.id)
         )
@@ -30,54 +29,74 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
   }, [user])
 
   return (
-    <div className="space-y-8 text-left">
-      {/* Hero Banner Alumno */}
-      <section className="bg-gradient-to-r from-indigo-900/40 via-purple-900/20 to-slate-900 border border-indigo-500/20 rounded-3xl p-6 md:p-8 relative overflow-hidden">
-        <div className="max-w-xl space-y-3">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-            <ShieldCheck className="w-3.5 h-3.5" /> Panel de Alumno • {user?.name}
-          </span>
-          <h1 className="text-3xl font-extrabold text-white leading-tight">
-            Pide en la Cafetería TESH sin filas
+    <div className="space-y-10 text-left">
+      
+      {/* Hero Banner Pro Alumno */}
+      <section className="relative overflow-hidden rounded-3xl border border-indigo-500/20 bg-gradient-to-br from-indigo-950/60 via-slate-900/90 to-slate-950 p-8 md:p-10 shadow-2xl backdrop-blur-xl">
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="max-w-2xl space-y-4 relative z-10">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 backdrop-blur-md">
+            <ShieldCheck className="w-4 h-4 text-indigo-400" />
+            <span>Smart Contract Escrow • Soroban Testnet</span>
+          </div>
+
+          <h1 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight">
+            Pide tu comida en la <span className="bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">Cafetería TESH</span> sin filas
           </h1>
-          <p className="text-slate-400 text-sm">
-            Tus pagos quedan retenidos de forma segura en la blockchain hasta que recojas tu pedido en barra.
+
+          <p className="text-slate-400 text-sm md:text-base leading-relaxed">
+            Programa tu hora de recolección, paga con la cripto del TESH y recoge en barra presentando tu código QR o de rescate.
           </p>
         </div>
       </section>
 
-      {/* Menú de Selección */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <Utensils className="w-5 h-5 text-indigo-400" /> Menú Disponible
-          </h2>
-          <span className="text-xs text-slate-400 flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5" /> Tiempo estimado: 10-15 min
+      {/* Menú Interactivo */}
+      <section className="space-y-6">
+        <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
+          <div>
+            <h2 className="text-2xl font-black text-white flex items-center gap-2.5">
+              <Utensils className="w-6 h-6 text-indigo-400" /> Menú Digital
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">Selecciona tus platillos y bloquea tus fondos en custodia</p>
+          </div>
+          <span className="text-xs font-semibold text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5 text-indigo-400" /> Preparación: 10-15 min
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
-            { id: 1, name: 'Torta de Chilaquiles', price: 35, category: 'Desayunos' },
-            { id: 2, name: 'Molletes Sencillos', price: 25, category: 'Snacks' },
-            { id: 3, name: 'Café Americano 12oz', price: 18, category: 'Bebidas' }
+            { id: 1, name: 'Torta de Chilaquiles', price: 35, category: 'Desayunos', icon: '🌯' },
+            { id: 2, name: 'Molletes Sencillos', price: 25, category: 'Snacks', icon: '🍞' },
+            { id: 3, name: 'Café Americano 12oz', price: 18, category: 'Bebidas', icon: '☕' }
           ].map(item => (
-            <div key={item.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 hover:border-slate-700 transition">
-              <div className="h-28 bg-slate-800/60 rounded-xl flex items-center justify-center text-slate-500">
-                <Utensils className="w-8 h-8 opacity-40" />
+            <div 
+              key={item.id} 
+              className="group relative bg-slate-900/60 border border-slate-800 hover:border-indigo-500/40 rounded-3xl p-5 transition duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 flex flex-col justify-between backdrop-blur-md"
+            >
+              <div className="space-y-4">
+                <div className="h-36 bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-2xl flex items-center justify-center text-5xl border border-slate-800/50 group-hover:scale-105 transition duration-300">
+                  {item.icon}
+                </div>
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-lg inline-block mb-2">
+                    {item.category}
+                  </span>
+                  <h3 className="font-bold text-lg text-white group-hover:text-indigo-200 transition">{item.name}</h3>
+                </div>
               </div>
-              <div>
-                <span className="text-xs text-indigo-400 font-medium">{item.category}</span>
-                <h3 className="font-semibold text-white">{item.name}</h3>
-              </div>
-              <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
-                <span className="font-bold text-slate-100">{item.price} $TESH</span>
+
+              <div className="flex items-center justify-between pt-4 border-t border-slate-800/80 mt-4">
+                <div>
+                  <span className="text-[10px] text-slate-500 block uppercase font-bold">Precio</span>
+                  <span className="text-xl font-black text-indigo-400">{item.price} <span className="text-xs text-indigo-300">$TESH</span></span>
+                </div>
                 <button 
                   onClick={() => onAddToCart(item)}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-600/20 hover:scale-105 active:scale-95"
                 >
-                  <ShoppingBag className="w-3.5 h-3.5" /> Agregar
+                  <ShoppingBag className="w-4 h-4" /> Agregar
                 </button>
               </div>
             </div>
@@ -85,39 +104,52 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
         </div>
       </section>
 
-      {/* Historial de Pedidos */}
-      <section className="space-y-4 pt-4 border-t border-slate-800">
+      {/* Mis Pedidos / Historial */}
+      <section className="space-y-6 pt-6 border-t border-slate-800/80">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Clock className="w-5 h-5 text-indigo-400" /> Mis Pedidos
-          </h2>
+          <div>
+            <h2 className="text-xl font-black text-white flex items-center gap-2">
+              <Clock className="w-5 h-5 text-indigo-400" /> Mis Pedidos Activos
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">Sincronizado en tiempo real con Supabase</p>
+          </div>
           <button 
             onClick={fetchMyOrders}
-            className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition flex items-center gap-1 text-xs"
+            className="p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-2xl transition flex items-center gap-2 text-xs font-semibold shadow-inner"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Actualizar Lista
+            <RefreshCw className={`w-3.5 h-3.5 text-indigo-400 ${loading ? 'animate-spin' : ''}`} /> Actualizar
           </button>
         </div>
 
         {myOrders.length === 0 ? (
-          <p className="text-xs text-slate-500 py-4">No tienes pedidos activos registrados a tu nombre.</p>
+          <div className="bg-slate-900/40 border border-slate-800/60 rounded-3xl p-8 text-center space-y-2">
+            <Sparkles className="w-8 h-8 text-slate-600 mx-auto" />
+            <p className="text-sm font-semibold text-slate-400">No tienes pedidos registrados a tu nombre todavía.</p>
+            <p className="text-xs text-slate-600">Selecciona algún platillo del menú para realizar tu primer compra en Escrow.</p>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {myOrders.map((ord) => (
-              <div key={ord.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs text-indigo-400 font-bold">{ord.pickup_code}</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-                      ord.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-400' :
-                      ord.status === 'PENALIZED' ? 'bg-rose-500/10 text-rose-400' : 'bg-amber-500/10 text-amber-400'
+              <div 
+                key={ord.id} 
+                className="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-3xl p-5 flex items-center justify-between shadow-lg transition"
+              >
+                <div className="space-y-2 text-left">
+                  <div className="flex items-center gap-2.5">
+                    <span className="font-mono text-sm font-black text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 rounded-lg">
+                      #{ord.pickup_code}
+                    </span>
+                    <span className={`text-[10px] px-2.5 py-1 rounded-full font-black uppercase tracking-wider ${
+                      ord.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                      ord.status === 'PENALIZED' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                     }`}>
                       {ord.status}
                     </span>
                   </div>
-                  <p className="text-xs text-white font-medium">{ord.items}</p>
-                  <p className="text-[10px] text-slate-400">Total: {ord.total} $TESH • Hora: {ord.pickup_time}</p>
+                  <p className="text-sm font-bold text-white">{ord.items}</p>
+                  <p className="text-xs text-slate-400 font-medium">Total: <span className="text-indigo-300 font-bold">{ord.total} $TESH</span> • Recolección: <span className="text-slate-200">{ord.pickup_time} hrs</span></p>
                 </div>
+
                 {ord.status === 'PENDING_ESCROW' && (
                   <button
                     onClick={() => onOpenTicket({
@@ -126,10 +158,10 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
                       pickupTime: ord.pickup_time,
                       total: ord.total
                     })}
-                    className="p-2 bg-slate-800 hover:bg-slate-700 text-indigo-400 rounded-xl transition"
+                    className="p-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl transition shadow-lg shadow-indigo-600/20 flex items-center justify-center group"
                     title="Ver Ticket QR"
                   >
-                    <QrCode className="w-5 h-5" />
+                    <QrCode className="w-5 h-5 group-hover:scale-110 transition" />
                   </button>
                 )}
               </div>
