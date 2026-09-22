@@ -1,13 +1,16 @@
 import React, { useState } from 'react'
-import { Wallet, Utensils, Zap, Clock, ShieldCheck, ShoppingBag, ShoppingCart } from 'lucide-react'
+import { Wallet, Utensils, Zap, Clock, ShieldCheck, ShoppingBag, ShoppingCart, Store } from 'lucide-react'
 import WalletModal from './components/WalletModal'
 import CartSidebar from './components/CartSidebar'
 import TicketModal from './components/TicketModal'
+import CafeteriaPanel from './components/CafeteriaPanel'
 
 export default function App() {
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isTicketOpen, setIsTicketOpen] = useState(false)
+  const [isCafeteriaPanelOpen, setIsCafeteriaPanelOpen] = useState(false)
+  
   const [walletConnected, setWalletConnected] = useState(false)
   const [balance, setBalance] = useState('0.00')
   const [cart, setCart] = useState([])
@@ -40,10 +43,8 @@ export default function App() {
       return
     }
 
-    // Generar código único aleatorio de 6 dígitos
     const randomCode = Math.floor(100000 + Math.random() * 900000).toString()
 
-    // Payload codificado para el QR
     const qrPayloadData = JSON.stringify({
       orderId: `ORD-${Date.now().toString().slice(-6)}`,
       code: randomCode,
@@ -51,10 +52,8 @@ export default function App() {
       time: time
     })
 
-    // Descontar saldo simulando el Escrow
     setBalance((prev) => (parseFloat(prev) - total).toFixed(2))
 
-    // Guardar datos del ticket
     setTicketData({
       pickupCode: randomCode,
       qrPayload: qrPayloadData,
@@ -82,6 +81,17 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Botón Acceso Panel Cafetería */}
+            <button 
+              onClick={() => setIsCafeteriaPanelOpen(true)}
+              className="p-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition text-slate-300 flex items-center gap-1.5 text-xs font-semibold"
+              title="Modo Cafetería / Escáner"
+            >
+              <Store className="w-4 h-4 text-indigo-400" />
+              <span className="hidden sm:inline">Panel Cafetería</span>
+            </button>
+
+            {/* Carrito */}
             <button 
               onClick={() => setIsCartOpen(true)}
               className="relative p-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition text-slate-200"
@@ -94,6 +104,7 @@ export default function App() {
               )}
             </button>
 
+            {/* Billetera */}
             <button 
               onClick={() => setIsWalletModalOpen(true)}
               className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition font-medium text-sm text-slate-200"
@@ -107,7 +118,6 @@ export default function App() {
 
       {/* Contenido Principal */}
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
-        {/* Banner principal */}
         <section className="bg-gradient-to-r from-indigo-900/40 via-purple-900/20 to-slate-900 border border-indigo-500/20 rounded-3xl p-6 md:p-8 relative overflow-hidden">
           <div className="max-w-xl space-y-4">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
@@ -122,7 +132,7 @@ export default function App() {
           </div>
         </section>
 
-        {/* Menú de Ejemplo */}
+        {/* Menú */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold flex items-center gap-2">
@@ -181,6 +191,11 @@ export default function App() {
         isOpen={isTicketOpen}
         onClose={() => setIsTicketOpen(false)}
         ticketData={ticketData}
+      />
+
+      <CafeteriaPanel
+        isOpen={isCafeteriaPanelOpen}
+        onClose={() => setIsCafeteriaPanelOpen(false)}
       />
     </div>
   )
