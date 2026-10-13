@@ -29,7 +29,7 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
     if (!user) return
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3001/api/orders')
+      const res = await fetch('/api/orders')
       const data = await res.json()
       if (Array.isArray(data)) {
         const filtered = data.filter(
@@ -66,7 +66,7 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
     setLoadingAi(true)
     setAiRecommendation('')
     try {
-      const res = await fetch('http://localhost:3001/api/ai/recommend', {
+      const res = await fetch('/api/ai/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ preference: 'Desayuno rico para estudiar' })

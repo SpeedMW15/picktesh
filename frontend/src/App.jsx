@@ -75,7 +75,7 @@ export default function App() {
     const studentName = user?.name || 'Alumno TESH'
 
     try {
-      await fetch('http://localhost:3001/api/orders', {
+      await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
