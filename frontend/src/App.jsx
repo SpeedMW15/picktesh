@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Wallet, Zap, ShoppingCart, LogOut, Store, GraduationCap, Sun, Moon } from 'lucide-react'
+import { Wallet, Zap, ShoppingCart, ShoppingBag, LogOut, Store, GraduationCap, Sun, Moon, CheckCircle2, ArrowRight } from 'lucide-react'
 import { useAuth } from './context/AuthContext'
 import WalletModal from './components/WalletModal'
 import CartSidebar from './components/CartSidebar'
@@ -26,6 +26,7 @@ export default function App() {
   const [balance, setBalance] = useState('100.00')
   const [cart, setCart] = useState([])
   const [ticketData, setTicketData] = useState(null)
+  const [addedToast, setAddedToast] = useState(null)
 
   // Aplicar cambios al tag HTML
   useEffect(() => {
@@ -49,14 +50,32 @@ export default function App() {
     setIsWalletModalOpen(false)
   }
 
-  const handleAddToCart = (item) => {
+  // Agregar producto a la bolsa SIN abrir inmediatamente el panel de pago
+  const handleAddToCart = (item, showNotification = true) => {
     if (!user) return
     setCart((prev) => [...prev, item])
-    setIsCartOpen(true)
+
+    if (showNotification) {
+      setAddedToast(item.name)
+      setTimeout(() => {
+        setAddedToast((current) => (current === item.name ? null : current))
+      }, 2200)
+    }
   }
 
-  const handleRemoveFromCart = (indexToRemove) => {
-    setCart((prev) => prev.filter((_, index) => index !== indexToRemove))
+  // Quitar una unidad de un producto por su ID
+  const handleRemoveOneItem = (itemId) => {
+    setCart((prev) => {
+      const index = prev.findIndex((i) => i.id === itemId)
+      if (index === -1) return prev
+      const updated = [...prev]
+      updated.splice(index, 1)
+      return updated
+    })
+  }
+
+  const handleClearCart = () => {
+    setCart([])
   }
 
   const handleCheckout = async (total, time) => {
@@ -72,7 +91,16 @@ export default function App() {
     }
 
     const randomCode = Math.floor(100000 + Math.random() * 900000).toString()
-    const itemsDescription = cart.map(i => i.name).join(', ')
+
+    // Agrupar productos repetidos para descripción limpia (ej: "2x Torta de Chilaquiles, Café Americano 12oz")
+    const groupedMap = cart.reduce((acc, item) => {
+      acc[item.name] = (acc[item.name] || 0) + 1
+      return acc
+    }, {})
+    const itemsDescription = Object.entries(groupedMap)
+      .map(([name, qty]) => (qty > 1 ? `${qty}x ${name}` : name))
+      .join(', ')
+
     const studentName = user?.name || 'Alumno TESH'
 
     try {
@@ -112,11 +140,13 @@ export default function App() {
     setIsTicketOpen(true)
   }
 
+  const cartTotal = cart.reduce((sum, item) => sum + item.price, 0)
+
   return (
-    <div className="min-h-screen font-sans relative overflow-x-hidden transition-colors duration-300">
+    <div className="min-h-screen font-sans relative overflow-x-hidden transition-colors duration-300 pb-24">
       
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-all duration-300">
+      <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-all duration-300">
         <div className="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">
           
           {/* Logo */}
@@ -151,6 +181,7 @@ export default function App() {
               <button 
                 onClick={() => setIsCartOpen(true)}
                 className="relative p-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 rounded-2xl transition cursor-pointer"
+                title="Abrir bolsa de pedido"
               >
                 <ShoppingCart className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                 {cart.length > 0 && (
@@ -185,7 +216,7 @@ export default function App() {
                 <span className="max-w-[100px] truncate">{user.name}</span>
                 <button 
                   onClick={logout} 
-                  className="text-slate-400 hover:text-rose-500 transition ml-1 p-0.5 rounded-lg" 
+                  className="text-slate-400 hover:text-rose-500 transition ml-1 p-0.5 rounded-lg cursor-pointer" 
                   title="Cerrar Sesión"
                 >
                   <LogOut className="w-3.5 h-3.5" />
@@ -196,6 +227,14 @@ export default function App() {
         </div>
       </header>
 
+      {/* Notificación rápida al agregar producto */}
+      {addedToast && (
+        <div className="fixed top-20 right-4 z-50 bg-slate-900 dark:bg-slate-800 text-white border border-emerald-500/40 px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-bold animate-fadeIn">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>Agregado a tu bolsa: <span className="text-emerald-300">{addedToast}</span></span>
+        </div>
+      )}
+
       {/* Contenido Principal */}
       <main className="max-w-6xl mx-auto px-4 py-8 relative z-10">
         {!user ? (
@@ -204,8 +243,9 @@ export default function App() {
           <CafeteriaDashboard user={user} />
         ) : (
           <StudentDashboard 
-            user={user} 
-            onAddToCart={handleAddToCart}
+            user={user}
+            cart={cart}
+            onAddToCart={(item) => handleAddToCart(item, true)}
             onOpenTicket={(ticket) => {
               setTicketData(ticket)
               setIsTicketOpen(true)
@@ -213,6 +253,36 @@ export default function App() {
           />
         )}
       </main>
+
+      {/* Ícono / Barra Flotante de Bolsa (Estilo Tienda Online) */}
+      {user?.role === 'student' && cart.length > 0 && !isCartOpen && (
+        <div className="fixed bottom-5 right-4 left-4 sm:left-auto sm:right-6 z-40">
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="w-full sm:w-auto flex items-center justify-between sm:justify-center gap-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white px-5 py-3.5 rounded-2xl shadow-2xl shadow-indigo-600/40 border border-white/15 transition transform hover:scale-[1.02] active:scale-95 cursor-pointer"
+          >
+            <div className="flex items-center gap-3">
+              <div className="relative bg-white/15 p-2 rounded-xl">
+                <ShoppingBag className="w-5 h-5" />
+                <span className="absolute -top-2 -right-2 bg-amber-400 text-slate-950 text-[11px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow">
+                  {cart.length}
+                </span>
+              </div>
+              <div className="text-left">
+                <span className="block text-xs font-extrabold leading-tight">Ver mi bolsa</span>
+                <span className="block text-[10px] text-indigo-100">
+                  {cart.length} {cart.length === 1 ? 'producto' : 'productos'}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 pl-3 border-l border-white/20">
+              <span className="text-sm font-black">{cartTotal} $TESH</span>
+              <ArrowRight className="w-4 h-4" />
+            </div>
+          </button>
+        </div>
+      )}
 
       {/* Modales */}
       <WalletModal 
@@ -222,7 +292,15 @@ export default function App() {
         walletConnected={walletConnected}
         balance={balance}
       />
-      <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} cart={cart} onRemoveItem={handleRemoveFromCart} onCheckout={handleCheckout} />
+      <CartSidebar 
+        isOpen={isCartOpen} 
+        onClose={() => setIsCartOpen(false)} 
+        cart={cart} 
+        onAddItem={(item) => handleAddToCart(item, false)}
+        onRemoveOneItem={handleRemoveOneItem}
+        onClearCart={handleClearCart}
+        onCheckout={handleCheckout} 
+      />
       <TicketModal isOpen={isTicketOpen} onClose={() => setIsTicketOpen(false)} ticketData={ticketData} />
     </div>
   )

@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react'
-import { Utensils, ShoppingBag, Clock, ShieldCheck, QrCode, RefreshCw, Sparkles, ArrowDownCircle, Coins, Cpu, CheckCircle2, FileText, ArrowUpRight, ArrowDownLeft, AlertTriangle } from 'lucide-react'
+import { Utensils, ShoppingBag, Clock, ShieldCheck, QrCode, RefreshCw, Sparkles, ArrowDownCircle, Coins, Cpu, CheckCircle2, FileText, ArrowUpRight, ArrowDownLeft, AlertTriangle, Check } from 'lucide-react'
 import MichiMascot from './MichiMascot'
 import { API_URL } from '../config/api'
 
-export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
+export default function StudentDashboard({ user, cart = [], onAddToCart, onOpenTicket }) {
   const [myOrders, setMyOrders] = useState([])
   const [loading, setLoading] = useState(false)
   const [aiRecommendation, setAiRecommendation] = useState('')
   const [loadingAi, setLoadingAi] = useState(false)
+  const [justAddedId, setJustAddedId] = useState(null)
   
   // Estado de Recarga $TESH
   const [recharging, setRecharging] = useState(false)
@@ -90,7 +91,6 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
     setRecharging(true)
     setShowRecargaMsg(false)
 
-    // Solicitud real al Faucet de Stellar Testnet en segundo plano
     if (user?.stellarPublicKey) {
       fetch(`${API_URL}/api/stellar/faucet`, {
         method: 'POST',
@@ -118,6 +118,14 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
       setShowRecargaMsg(true)
       setTimeout(() => setShowRecargaMsg(false), 4000)
     }, 1500)
+  }
+
+  const handleSelectMenuItem = (item) => {
+    onAddToCart(item)
+    setJustAddedId(item.id)
+    setTimeout(() => {
+      setJustAddedId((curr) => (curr === item.id ? null : curr))
+    }, 900)
   }
 
   const totalSpent = myOrders
@@ -263,12 +271,12 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
 
       {/* Menú Digital */}
       <section className="space-y-6">
-        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 pb-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800/80 pb-4">
           <div>
             <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
               <Utensils className="w-6 h-6 text-indigo-600 dark:text-indigo-400" /> Menú Digital
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Selecciona tus platillos y bloquea tus fondos en custodia</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Agrega todos los platillos que quieras a tu bolsa y confirma al final</p>
           </div>
           <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-200/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" /> Preparación: 10-15 min
@@ -280,37 +288,59 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
             { id: 1, name: 'Torta de Chilaquiles', price: 35, category: 'Desayunos', icon: '🌯' },
             { id: 2, name: 'Molletes Sencillos', price: 25, category: 'Snacks', icon: '🍞' },
             { id: 3, name: 'Café Americano 12oz', price: 18, category: 'Bebidas', icon: '☕' }
-          ].map(item => (
-            <div 
-              key={item.id} 
-              className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-indigo-500/40 rounded-3xl p-5 transition duration-300 hover:shadow-xl flex flex-col justify-between"
-            >
-              <div className="space-y-4">
-                <div className="h-36 bg-slate-50 dark:bg-slate-950/60 rounded-2xl flex items-center justify-center text-5xl border border-slate-200 dark:border-slate-800/60">
-                  {item.icon}
-                </div>
-                <div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-lg inline-block mb-2">
-                    {item.category}
-                  </span>
-                  <h3 className="font-bold text-lg text-slate-900 dark:text-white">{item.name}</h3>
-                </div>
-              </div>
+          ].map(item => {
+            const countInBag = cart.filter((c) => c.id === item.id).length
+            const isJustAdded = justAddedId === item.id
 
-              <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800/80 mt-4">
-                <div>
-                  <span className="text-[10px] text-slate-400 block uppercase font-bold">Precio</span>
-                  <span className="text-xl font-black text-indigo-600 dark:text-indigo-400">{item.price} <span className="text-xs text-indigo-500">$TESH</span></span>
+            return (
+              <div 
+                key={item.id} 
+                className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-indigo-500/40 rounded-3xl p-5 transition duration-300 hover:shadow-xl flex flex-col justify-between"
+              >
+                <div className="space-y-4">
+                  <div className="relative h-36 bg-slate-50 dark:bg-slate-950/60 rounded-2xl flex items-center justify-center text-5xl border border-slate-200 dark:border-slate-800/60">
+                    {item.icon}
+                    {countInBag > 0 && (
+                      <span className="absolute top-2.5 right-2.5 bg-indigo-600 text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-md">
+                        En bolsa: {countInBag}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 rounded-lg inline-block mb-2">
+                      {item.category}
+                    </span>
+                    <h3 className="font-bold text-lg text-slate-900 dark:text-white">{item.name}</h3>
+                  </div>
                 </div>
-                <button 
-                  onClick={() => onAddToCart(item)}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-600/20 hover:scale-105 active:scale-95 cursor-pointer"
-                >
-                  <ShoppingBag className="w-4 h-4" /> Agregar
-                </button>
+
+                <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800/80 mt-4">
+                  <div>
+                    <span className="text-[10px] text-slate-400 block uppercase font-bold">Precio</span>
+                    <span className="text-xl font-black text-indigo-600 dark:text-indigo-400">{item.price} <span className="text-xs text-indigo-500">$TESH</span></span>
+                  </div>
+                  <button 
+                    onClick={() => handleSelectMenuItem(item)}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-lg hover:scale-105 active:scale-95 cursor-pointer text-white ${
+                      isJustAdded
+                        ? 'bg-emerald-600 shadow-emerald-600/25'
+                        : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-indigo-600/20'
+                    }`}
+                  >
+                    {isJustAdded ? (
+                      <>
+                        <Check className="w-4 h-4" /> ¡Agregado!
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingBag className="w-4 h-4" /> Agregar
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </section>
 
@@ -334,7 +364,7 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
         {myOrders.length === 0 ? (
           <div className="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/60 rounded-3xl p-8 text-center space-y-2">
             <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">No tienes pedidos registrados a tu nombre todavía.</p>
-            <p className="text-xs text-slate-400 dark:text-slate-600">Selecciona algún platillo del menú para realizar tu primer compra en Escrow.</p>
+            <p className="text-xs text-slate-400 dark:text-slate-600">Selecciona algún platillo del menú para realizar tu primera compra en Escrow.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
