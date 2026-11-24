@@ -10,7 +10,6 @@ export default function CafeteriaPanel({ isOpen, onClose }) {
 
   if (!isOpen) return null
 
-  // Consultar directamente al servidor Backend (Supabase)
   const handleVerifyCode = async (e) => {
     if (e && e.preventDefault) e.preventDefault()
     
@@ -71,8 +70,8 @@ export default function CafeteriaPanel({ isOpen, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-6 shadow-2xl relative">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full max-h-[92dvh] overflow-y-auto p-5 sm:p-6 space-y-5 shadow-2xl relative my-auto">
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-4">
@@ -85,7 +84,7 @@ export default function CafeteriaPanel({ isOpen, onClose }) {
               <p className="text-xs text-slate-400">Validación en tiempo real (Supabase)</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white p-1 rounded-xl bg-slate-800">
+          <button onClick={onClose} className="text-slate-400 hover:text-white p-1.5 rounded-xl bg-slate-800 cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -102,7 +101,7 @@ export default function CafeteriaPanel({ isOpen, onClose }) {
         <div className="flex bg-slate-800/60 p-1 rounded-2xl border border-slate-700/50">
           <button
             onClick={() => setActiveTab('code')}
-            className={`flex-1 py-2 text-xs font-semibold rounded-xl transition flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2 text-xs font-semibold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === 'code' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -110,7 +109,7 @@ export default function CafeteriaPanel({ isOpen, onClose }) {
           </button>
           <button
             onClick={() => setActiveTab('qr')}
-            className={`flex-1 py-2 text-xs font-semibold rounded-xl transition flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2 text-xs font-semibold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === 'qr' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -132,7 +131,7 @@ export default function CafeteriaPanel({ isOpen, onClose }) {
                 onChange={(e) => setInputCode(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-center font-mono text-xl tracking-widest focus:outline-none focus:border-indigo-500"
               />
-              <button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 rounded-xl transition flex items-center justify-center">
+              <button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 rounded-xl transition flex items-center justify-center cursor-pointer">
                 <Search className="w-5 h-5" />
               </button>
             </div>
@@ -141,8 +140,8 @@ export default function CafeteriaPanel({ isOpen, onClose }) {
 
         {activeTab === 'qr' && (
           <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 text-center space-y-3">
-            <div className="w-32 h-32 mx-auto border-2 border-dashed border-indigo-500/50 rounded-2xl flex items-center justify-center text-slate-500">
-              <QrCode className="w-12 h-12 text-indigo-400 animate-pulse" />
+            <div className="w-28 h-28 mx-auto border-2 border-dashed border-indigo-500/50 rounded-2xl flex items-center justify-center text-slate-500">
+              <QrCode className="w-10 h-10 text-indigo-400 animate-pulse" />
             </div>
             <p className="text-xs text-slate-400">Apunta la cámara al QR del alumno.</p>
           </div>
@@ -171,10 +170,10 @@ export default function CafeteriaPanel({ isOpen, onClose }) {
             </div>
 
             <div className="grid grid-cols-2 gap-2 pt-2">
-              <button onClick={handleDeliverOrder} className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1">
+              <button onClick={handleDeliverOrder} className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1 cursor-pointer">
                 <CheckCircle2 className="w-4 h-4" /> Entregar Comida
               </button>
-              <button onClick={handleApplyPenalty} className="bg-slate-700 hover:bg-rose-950 hover:text-rose-300 hover:border-rose-800 border border-slate-600 text-slate-300 font-semibold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1">
+              <button onClick={handleApplyPenalty} className="bg-slate-700 hover:bg-rose-950 hover:text-rose-300 hover:border-rose-800 border border-slate-600 text-slate-300 font-semibold py-2.5 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1 cursor-pointer">
                 <AlertTriangle className="w-4 h-4" /> Aplicar Penalización
               </button>
             </div>
