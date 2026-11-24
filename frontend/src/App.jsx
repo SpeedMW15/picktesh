@@ -7,6 +7,7 @@ import TicketModal from './components/TicketModal'
 import StudentDashboard from './components/StudentDashboard'
 import CafeteriaDashboard from './components/CafeteriaDashboard'
 import WelcomePage from './components/WelcomePage'
+import { API_URL } from './config/api'
 
 export default function App() {
   const { user, logout } = useAuth()
@@ -75,7 +76,7 @@ export default function App() {
     const studentName = user?.name || 'Alumno TESH'
 
     try {
-      await fetch('/api/orders', {
+      await fetch(`${API_URL}/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -214,7 +215,13 @@ export default function App() {
       </main>
 
       {/* Modales */}
-      <WalletModal isOpen={isWalletModalOpen} onClose={() => setIsWalletModalOpen(false)} onConnectDemo={handleConnectDemo} />
+      <WalletModal 
+        isOpen={isWalletModalOpen} 
+        onClose={() => setIsWalletModalOpen(false)} 
+        onConnectDemo={handleConnectDemo} 
+        walletConnected={walletConnected}
+        balance={balance}
+      />
       <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} cart={cart} onRemoveItem={handleRemoveFromCart} onCheckout={handleCheckout} />
       <TicketModal isOpen={isTicketOpen} onClose={() => setIsTicketOpen(false)} ticketData={ticketData} />
     </div>

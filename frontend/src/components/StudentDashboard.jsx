@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Utensils, ShoppingBag, Clock, ShieldCheck, QrCode, RefreshCw, Sparkles, ArrowDownCircle, Coins, Cpu, CheckCircle2, FileText, ArrowUpRight, ArrowDownLeft, AlertTriangle } from 'lucide-react'
 import MichiMascot from './MichiMascot'
+import { API_URL } from '../config/api'
 
 export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
   const [myOrders, setMyOrders] = useState([])
@@ -29,7 +30,7 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
     if (!user) return
     setLoading(true)
     try {
-      const res = await fetch('/api/orders')
+      const res = await fetch(`${API_URL}/api/orders`)
       const data = await res.json()
       if (Array.isArray(data)) {
         const filtered = data.filter(
@@ -66,7 +67,7 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
     setLoadingAi(true)
     setAiRecommendation('')
     try {
-      const res = await fetch('/api/ai/recommend', {
+      const res = await fetch(`${API_URL}/api/ai/recommend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ preference: 'Desayuno rico para estudiar' })
@@ -88,6 +89,16 @@ export default function StudentDashboard({ user, onAddToCart, onOpenTicket }) {
   const handleRechargeWallet = () => {
     setRecharging(true)
     setShowRecargaMsg(false)
+
+    // Solicitud real al Faucet de Stellar Testnet en segundo plano
+    if (user?.stellarPublicKey) {
+      fetch(`${API_URL}/api/stellar/faucet`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ publicKey: user.stellarPublicKey })
+      }).catch(() => {})
+    }
+
     setTimeout(() => {
       const current = parseFloat(walletBalance)
       const newBal = (current + 50.00).toFixed(2)

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useMsal } from '@azure/msal-react'
 import { loginRequest, msalConfig } from '../authConfig'
 import { Keypair } from '@stellar/stellar-sdk'
+import { API_URL } from '../config/api'
 
 const AuthContext = createContext()
 
@@ -27,7 +28,7 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password, enrollment })
@@ -48,7 +49,10 @@ export function AuthProvider({ children }) {
 
   // 2. Login con Microsoft 365
   const loginWithMicrosoft = async (demoEmail = 'l2026109482@huixquilucan.tecnm.mx') => {
-    if (msalConfig.auth.clientId === 'YOUR_AZURE_CLIENT_ID_HERE' || msalConfig.auth.clientId === 'YOUR_CLIENT_ID_HERE') {
+    if (
+      msalConfig.auth.clientId === 'YOUR_AZURE_CLIENT_ID_HERE' ||
+      msalConfig.auth.clientId === 'YOUR_CLIENT_ID_HERE'
+    ) {
       const cleanEmail = demoEmail.trim().toLowerCase()
       const studentId = cleanEmail.includes('@') ? cleanEmail.split('@')[0] : cleanEmail
       const email = cleanEmail.includes('@') ? cleanEmail : `${cleanEmail}@huixquilucan.tecnm.mx`
@@ -66,7 +70,7 @@ export function AuthProvider({ children }) {
       }
 
       // Activar cuenta en Testnet en segundo plano
-      fetch('/api/stellar/faucet', {
+      fetch(`${API_URL}/api/stellar/faucet`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ publicKey: pair.publicKey() })
@@ -119,7 +123,7 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier: email, password })
@@ -166,14 +170,16 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      registerUser,
-      loginWithMicrosoft, 
-      loginWithLocalAccount, 
-      loginAsCafeteria, 
-      logout 
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        registerUser,
+        loginWithMicrosoft,
+        loginWithLocalAccount,
+        loginAsCafeteria,
+        logout
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { X, Wallet, ShieldCheck, ExternalLink, RefreshCw, Copy, Check } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { API_URL } from '../config/api'
 
 export default function WalletModal({ isOpen, onClose, onConnectDemo, walletConnected, balance }) {
   const { user } = useAuth()
@@ -19,11 +20,20 @@ export default function WalletModal({ isOpen, onClose, onConnectDemo, walletConn
 
   const handleFundTestnet = async () => {
     setLoading(true)
-    // Simulación de llamado al Friendbot de Stellar Testnet
-    setTimeout(() => {
+    try {
+      if (user?.stellarPublicKey) {
+        await fetch(`${API_URL}/api/stellar/faucet`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ publicKey: user.stellarPublicKey })
+        })
+      }
+    } catch (err) {
+      console.error('Error conectando con Friendbot:', err)
+    } finally {
       onConnectDemo('100.00')
       setLoading(false)
-    }, 1200)
+    }
   }
 
   return (

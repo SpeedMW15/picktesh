@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { X, QrCode, Hash, CheckCircle2, AlertTriangle, Search, ShieldCheck } from 'lucide-react'
+import { API_URL } from '../config/api'
 
 export default function CafeteriaPanel({ isOpen, onClose }) {
   const [inputCode, setInputCode] = useState('')
@@ -19,7 +20,7 @@ export default function CafeteriaPanel({ isOpen, onClose }) {
     }
 
     try {
-      const res = await fetch(`http://localhost:3001/api/orders/verify/${inputCode}`)
+      const res = await fetch(`${API_URL}/api/orders/verify/${inputCode}`)
       if (!res.ok) {
         alert('Código no encontrado en la base de datos.')
         setScannedOrder(null)
@@ -35,7 +36,7 @@ export default function CafeteriaPanel({ isOpen, onClose }) {
 
   const handleDeliverOrder = async () => {
     try {
-      await fetch(`http://localhost:3001/api/orders/${scannedOrder.pickup_code}/status`, {
+      await fetch(`${API_URL}/api/orders/${scannedOrder.pickup_code}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'COMPLETED' })
@@ -53,7 +54,7 @@ export default function CafeteriaPanel({ isOpen, onClose }) {
 
   const handleApplyPenalty = async () => {
     try {
-      await fetch(`http://localhost:3001/api/orders/${scannedOrder.pickup_code}/status`, {
+      await fetch(`${API_URL}/api/orders/${scannedOrder.pickup_code}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'PENALIZED' })

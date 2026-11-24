@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { Store, Hash, Search, CheckCircle2, AlertTriangle, RefreshCw, Clock, ShieldCheck, Activity } from 'lucide-react'
+import { Store, Hash, Search, CheckCircle2, AlertTriangle, RefreshCw, Activity } from 'lucide-react'
+import { API_URL } from '../config/api'
 
 export default function CafeteriaDashboard({ user }) {
   const [inputCode, setInputCode] = useState('')
@@ -11,7 +12,7 @@ export default function CafeteriaDashboard({ user }) {
   const fetchAllOrders = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:3001/api/orders')
+      const res = await fetch(`${API_URL}/api/orders`)
       const data = await res.json()
       if (Array.isArray(data)) setAllOrders(data)
     } catch (err) {
@@ -33,7 +34,7 @@ export default function CafeteriaDashboard({ user }) {
     }
 
     try {
-      const res = await fetch(`http://localhost:3001/api/orders/verify/${inputCode}`)
+      const res = await fetch(`${API_URL}/api/orders/verify/${inputCode}`)
       if (!res.ok) {
         alert('Código no encontrado en Supabase.')
         setScannedOrder(null)
@@ -50,7 +51,7 @@ export default function CafeteriaDashboard({ user }) {
   const handleDeliverOrder = async (codeToUse) => {
     const code = codeToUse || scannedOrder?.pickup_code
     try {
-      await fetch(`http://localhost:3001/api/orders/${code}/status`, {
+      await fetch(`${API_URL}/api/orders/${code}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'COMPLETED' })
@@ -70,7 +71,7 @@ export default function CafeteriaDashboard({ user }) {
   const handleApplyPenalty = async (codeToUse) => {
     const code = codeToUse || scannedOrder?.pickup_code
     try {
-      await fetch(`http://localhost:3001/api/orders/${code}/status`, {
+      await fetch(`${API_URL}/api/orders/${code}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'PENALIZED' })
@@ -110,7 +111,7 @@ export default function CafeteriaDashboard({ user }) {
 
         <button 
           onClick={fetchAllOrders}
-          className="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-2xl transition flex items-center gap-2 text-xs font-semibold shadow-inner"
+          className="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-2xl transition flex items-center gap-2 text-xs font-semibold shadow-inner cursor-pointer"
         >
           <RefreshCw className={`w-4 h-4 text-purple-400 ${loading ? 'animate-spin' : ''}`} /> Sincronizar
         </button>
@@ -135,7 +136,7 @@ export default function CafeteriaDashboard({ user }) {
                 onChange={(e) => setInputCode(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 focus:border-purple-500 rounded-2xl px-4 py-3 text-white text-center font-mono text-xl tracking-widest focus:outline-none transition shadow-inner"
               />
-              <button type="submit" className="bg-purple-600 hover:bg-purple-500 text-white px-4 rounded-2xl transition shadow-lg shadow-purple-600/25">
+              <button type="submit" className="bg-purple-600 hover:bg-purple-500 text-white px-4 rounded-2xl transition shadow-lg shadow-purple-600/25 cursor-pointer">
                 <Search className="w-5 h-5" />
               </button>
             </div>
@@ -166,10 +167,10 @@ export default function CafeteriaDashboard({ user }) {
               <p className="text-sm font-black text-purple-400">{scannedOrder.total} $TESH</p>
               
               <div className="grid grid-cols-2 gap-2 pt-2">
-                <button onClick={() => handleDeliverOrder()} className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-lg shadow-emerald-600/20">
+                <button onClick={() => handleDeliverOrder()} className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-lg shadow-emerald-600/20 cursor-pointer">
                   Entregar
                 </button>
-                <button onClick={() => handleApplyPenalty()} className="bg-slate-800 hover:bg-rose-950 hover:text-rose-300 text-slate-300 border border-slate-700 hover:border-rose-800 font-bold py-2.5 rounded-xl text-xs transition">
+                <button onClick={() => handleApplyPenalty()} className="bg-slate-800 hover:bg-rose-950 hover:text-rose-300 text-slate-300 border border-slate-700 hover:border-rose-800 font-bold py-2.5 rounded-xl text-xs transition cursor-pointer">
                   Penalizar
                 </button>
               </div>
@@ -208,10 +209,10 @@ export default function CafeteriaDashboard({ user }) {
                   <div className="flex items-center gap-2">
                     {ord.status === 'PENDING_ESCROW' ? (
                       <div className="flex gap-1.5">
-                        <button onClick={() => handleDeliverOrder(ord.pickup_code)} className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[10px] font-extrabold transition shadow-md shadow-emerald-600/20">
+                        <button onClick={() => handleDeliverOrder(ord.pickup_code)} className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[10px] font-extrabold transition shadow-md shadow-emerald-600/20 cursor-pointer">
                           Entregar
                         </button>
-                        <button onClick={() => handleApplyPenalty(ord.pickup_code)} className="px-3 py-1.5 bg-slate-800 hover:bg-rose-950 hover:text-rose-300 text-slate-300 border border-slate-700 rounded-xl text-[10px] font-extrabold transition">
+                        <button onClick={() => handleApplyPenalty(ord.pickup_code)} className="px-3 py-1.5 bg-slate-800 hover:bg-rose-950 hover:text-rose-300 text-slate-300 border border-slate-700 rounded-xl text-[10px] font-extrabold transition cursor-pointer">
                           Penalizar
                         </button>
                       </div>
