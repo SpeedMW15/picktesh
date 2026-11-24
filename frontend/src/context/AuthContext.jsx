@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useMsal } from '@azure/msal-react'
 import { loginRequest, msalConfig } from '../authConfig'
+import { Keypair } from '@stellar/stellar-sdk'
 
 const AuthContext = createContext()
 
@@ -26,7 +27,7 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      const res = await fetch('http://localhost:3001/api/auth/register', {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password, enrollment })
@@ -47,10 +48,13 @@ export function AuthProvider({ children }) {
 
   // 2. Login con Microsoft 365
   const loginWithMicrosoft = async (demoEmail = 'l2026109482@huixquilucan.tecnm.mx') => {
-    if (msalConfig.auth.clientId === 'YOUR_AZURE_CLIENT_ID_HERE') {
+    if (msalConfig.auth.clientId === 'YOUR_AZURE_CLIENT_ID_HERE' || msalConfig.auth.clientId === 'YOUR_CLIENT_ID_HERE') {
       const cleanEmail = demoEmail.trim().toLowerCase()
       const studentId = cleanEmail.includes('@') ? cleanEmail.split('@')[0] : cleanEmail
       const email = cleanEmail.includes('@') ? cleanEmail : `${cleanEmail}@huixquilucan.tecnm.mx`
+
+      // Generar llave pública real de Stellar Testnet
+      const pair = Keypair.random()
 
       const studentUser = {
         id: studentId,
@@ -58,8 +62,15 @@ export function AuthProvider({ children }) {
         email: email,
         role: 'student',
         provider: 'Microsoft 365 TecNM',
-        stellarPublicKey: `G${studentId.toUpperCase()}TESHSTELLARKEYTESTNET0001`
+        stellarPublicKey: pair.publicKey()
       }
+
+      // Activar cuenta en Testnet en segundo plano
+      fetch('/api/stellar/faucet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ publicKey: pair.publicKey() })
+      }).catch(() => {})
 
       setUser(studentUser)
       return { success: true }
@@ -79,6 +90,7 @@ export function AuthProvider({ children }) {
       }
 
       const studentId = email.split('@')[0]
+      const pair = Keypair.random()
 
       const studentUser = {
         id: studentId,
@@ -86,7 +98,7 @@ export function AuthProvider({ children }) {
         email: email,
         role: 'student',
         provider: 'Microsoft Azure AD',
-        stellarPublicKey: `G${studentId.toUpperCase()}TESHSTELLARKEYTESTNET0001`
+        stellarPublicKey: pair.publicKey()
       }
 
       setUser(studentUser)
@@ -107,7 +119,7 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      const res = await fetch('http://localhost:3001/api/auth/login', {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier: email, password })

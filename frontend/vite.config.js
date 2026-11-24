@@ -9,9 +9,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
-        name: 'PickTESH - Cafetería TESH',
+        name: 'PickTESH - CafeterÃ­a TESH',
         short_name: 'PickTESH',
-        description: 'Paga con Crypto y recoge tu comida sin filas en la cafetería del TESH',
+        description: 'Paga con Crypto y recoge tu comida sin filas en la cafeterÃ­a del TESH',
         theme_color: '#0f172a',
         background_color: '#0f172a',
         display: 'standalone',
@@ -24,5 +24,13 @@ export default defineConfig({
         ]
       }
     })
-  ]
+  ],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true
+      }
+    }
+  }
 })

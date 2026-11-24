@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import { createClient } from '@supabase/supabase-js'
+import { Keypair, Horizon } from '@stellar/stellar-sdk'
 
 dotenv.config()
 
@@ -14,8 +15,32 @@ app.use(express.json())
 const supabaseUrl = process.env.SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
+const horizonServer = new Horizon.Server('https://horizon-testnet.stellar.org')
 
-// 1. Registro de Usuario en Supabase
+// Helper: Crear y fondear cuenta real en Stellar Testnet (Friendbot)
+async function generateFundedStellarAccount() {
+  try {
+    const pair = Keypair.random()
+    const publicKey = pair.publicKey()
+    const secretKey = pair.secret()
+
+    const friendbotRes = await fetch(
+      `https://friendbot.stellar.org?addr=${encodeURIComponent(publicKey)}`
+    )
+
+    if (!friendbotRes.ok) {
+      console.warn('Friendbot tardó en responder, se guarda llave pública generada.')
+    }
+
+    return { publicKey, secretKey }
+  } catch (err) {
+    console.error('Error generando cuenta Stellar Testnet:', err)
+    const fallbackPair = Keypair.random()
+    return { publicKey: fallbackPair.publicKey(), secretKey: fallbackPair.secret() }
+  }
+}
+
+// 1. Registro de Usuario en Supabase + Cuenta Real Stellar Testnet
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, email, password, enrollment } = req.body
@@ -26,7 +51,6 @@ app.post('/api/auth/register', async (req, res) => {
 
     const cleanEmail = email.trim().toLowerCase()
     const studentId = enrollment ? enrollment.trim() : cleanEmail.split('@')[0]
-    const stellarKey = `G${studentId.toUpperCase().replace(/[^A-Z0-9]/g, '')}STELLARSECUREKEY001`
 
     // Verificar si el correo ya está registrado en Supabase
     const { data: existingUser } = await supabase
@@ -39,14 +63,16 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'Este correo electrónico ya está registrado.' })
     }
 
-    // Insertar nuevo usuario en la base de datos
+    // Generar y fondear billetera real en Stellar Testnet
+    const { publicKey } = await generateFundedStellarAccount()
+
     const newUser = {
       student_id: studentId,
       name: name,
       email: cleanEmail,
-      password: password, // Para producción se recomienda encriptar con bcrypt
+      password: password,
       role: 'student',
-      stellar_public_key: stellarKey
+      stellar_public_key: publicKey
     }
 
     const { data, error } = await supabase.from('users').insert([newUser]).select()
@@ -83,7 +109,6 @@ app.post('/api/auth/login', async (req, res) => {
 
     const cleanInput = identifier.trim().toLowerCase()
 
-    // Buscar usuario en Supabase por email o por student_id (matrícula)
     const { data: users, error } = await supabase
       .from('users')
       .select('*')
@@ -95,7 +120,6 @@ app.post('/api/auth/login', async (req, res) => {
 
     const user = users[0]
 
-    // Validar contraseña exacta
     if (user.password !== password) {
       return res.status(401).json({ error: 'Contraseña incorrecta. Inténtalo de nuevo.' })
     }
@@ -117,7 +141,40 @@ app.post('/api/auth/login', async (req, res) => {
   }
 })
 
-// 3. Obtener pedidos en Supabase
+// 3. Consultar saldo real en Stellar Testnet (Horizon)
+app.get('/api/stellar/balance/:publicKey', async (req, res) => {
+  try {
+    const { publicKey } = req.params
+    const account = await horizonServer.loadAccount(publicKey)
+    res.json({
+      publicKey,
+      balances: account.balances
+    })
+  } catch (error) {
+    res.status(404).json({ error: 'Cuenta aún no activada en Stellar Testnet', balances: [] })
+  }
+})
+
+// 4. Fondear cuenta en Stellar Testnet con Friendbot
+app.post('/api/stellar/faucet', async (req, res) => {
+  try {
+    const { publicKey } = req.body
+    if (!publicKey || !publicKey.startsWith('G') || publicKey.length !== 56) {
+      const generated = await generateFundedStellarAccount()
+      return res.json({ success: true, publicKey: generated.publicKey })
+    }
+
+    const response = await fetch(
+      `https://friendbot.stellar.org?addr=${encodeURIComponent(publicKey)}`
+    )
+    const data = await response.json()
+    res.json({ success: response.ok, hash: data.hash || null, publicKey })
+  } catch (error) {
+    res.status(500).json({ error: 'Error al solicitar fondos a Stellar Friendbot' })
+  }
+})
+
+// 5. Obtener pedidos en Supabase
 app.get('/api/orders', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -132,7 +189,7 @@ app.get('/api/orders', async (req, res) => {
   }
 })
 
-// 4. Registrar pedido
+// 6. Registrar pedido
 app.post('/api/orders', async (req, res) => {
   try {
     const { pickupCode, student, items, total, pickupTime } = req.body
@@ -156,7 +213,7 @@ app.post('/api/orders', async (req, res) => {
   }
 })
 
-// 5. Verificación de ticket por código
+// 7. Verificación de ticket por código
 app.get('/api/orders/verify/:code', async (req, res) => {
   try {
     const { code } = req.params
@@ -184,7 +241,7 @@ app.get('/api/orders/verify/:code', async (req, res) => {
   }
 })
 
-// 6. Actualizar estado de pedido
+// 8. Actualizar estado de pedido
 app.patch('/api/orders/:code/status', async (req, res) => {
   try {
     const { code } = req.params
@@ -203,7 +260,7 @@ app.patch('/api/orders/:code/status', async (req, res) => {
   }
 })
 
-// 7. Recomendador IA Groq
+// 9. Recomendador IA Groq
 app.post('/api/ai/recommend', async (req, res) => {
   try {
     const { preference } = req.body
@@ -248,6 +305,11 @@ app.post('/api/ai/recommend', async (req, res) => {
   }
 })
 
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor backend escuchando en http://localhost:${PORT}`)
-})
+// Solo levantar puerto en desarrollo local; en Vercel se exporta como Serverless Function
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor backend escuchando en http://localhost:${PORT}`)
+  })
+}
+
+export default app
